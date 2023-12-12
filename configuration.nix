@@ -7,7 +7,7 @@
 { config, pkgs, ... }:
 
 {
-
+  imports = [ ./home.nix ];
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -81,7 +81,7 @@
     description = "AnnoyingRains";
     extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [
-    # using system packages instead
+      # using system packages instead
     ];
   };
 
@@ -91,28 +91,51 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-	# standard non-system specific packages go here
+    ### standard non-system specific packages go here ###
+
+    ## command line utilities ##
     wget
     git
-    firefox
     micro
+    gnupg
+    htop
+    nixpkgs-fmt # mainly used in vscode
+    lspci
+
+    ## graphical apps ##
+
+    # games
     steam
+    lutris
+
+    # chat
     discord-canary
+    nheko
+
+    # emulators
     dolphin-emu
     citra
+    yuzu
+
+    # other
+    firefox
+    filezilla
+    kleopatra
+    vscode
   ];
 
   programs.git = {
-  	enable = true;
-  	config = {
-  		user.name = "AnnoyingRains";
-  		user.email = "annoyingrain5@gmail.com";
-  	};
+    enable = true;
+    config = {
+      user.name = "AnnoyingRains";
+      user.email = "annoyingrain5@gmail.com";
+    };
   };
-  
-  environment.interactiveShellInit = ''
-  alias nano=micro
-  '';
+
+  programs.gnupg.agent = {
+    enable = true;
+    enableSSHSupport = true;
+  };
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
@@ -141,6 +164,15 @@
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "23.05"; # Did you read the comment?
 
-  nix.settings.experimental-features=["nix-command" "flakes"];
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
+  environment.interactiveShellInit = ''
+    alias nano=micro
+    unset SSH_AGENT_PID
+    if [ "''${gnupg_SSH_AUTH_SOCK_by:-0}" -ne $$ ]; then
+      export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
+    fi
+    export GPG_TTY=$(tty)
+    gpg-connect-agent updatestartuptty /bye >/dev/null
+  '';
 }
