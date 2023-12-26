@@ -47,9 +47,16 @@
         jnoortheen.nix-ide
       ];
     };
+    gtk = {
+      enable = true;
+      theme = {
+        package = pkgs.gnome.gnome-themes-extra;
+        name = "Breeze";
+      };
+    };
 
     # write sshcontrol with my gpg/ssh keygrip.
-		# This allows me to ssh using my GPG key
+    # This allows me to ssh using my GPG key
     home.file.".gnupg/sshcontrol" = {
       source = dotfiles/sshcontrol;
     };

@@ -55,6 +55,9 @@
   # Enable CUPS to print documents.
   services.printing.enable = true;
 
+  # enable dconf, this is required for home-manager gtk config
+  programs.dconf.enable = true;
+
   # Enable sound with pipewire.
   sound.enable = true;
   hardware.pulseaudio.enable = false;
@@ -100,7 +103,7 @@
     gnupg
     htop
     nixpkgs-fmt # mainly used in vscode
-    lspci
+    pciutils
 
     ## graphical apps ##
 
@@ -132,19 +135,12 @@
     };
   };
 
+  # Some programs need SUID wrappers, can be configured further or are
+  # started in user sessions.
   programs.gnupg.agent = {
     enable = true;
     enableSSHSupport = true;
   };
-
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  # programs.mtr.enable = true;
-  # programs.gnupg.agent = {
-  #   enable = true;
-  #   enableSSHSupport = true;
-  # };
-
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
