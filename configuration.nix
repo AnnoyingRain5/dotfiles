@@ -110,6 +110,7 @@
     # games
     steam
     lutris
+    prismlauncher
 
     # chat
     discord-canary
