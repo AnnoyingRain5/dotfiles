@@ -136,7 +136,6 @@
     yuzu
 
     # kde apps that should be installed by default
-    partition-manager
     kate
 
     # other
@@ -146,6 +145,9 @@
     vscode
     vlc
   ];
+
+  # for some reason, KDE partition manager needs to be enabled like this?
+  programs.partition-manager.enable = true;
 
   programs.git = {
     enable = true;
