@@ -3,7 +3,7 @@
 {
   imports = [ ../../configuration.nix ./hardware-configuration.nix ];
 
-  networking.hostName = "Flareon";
+  networking.hostName = "Blaze";
 
   # bluetooth
   hardware.bluetooth.enable = true;

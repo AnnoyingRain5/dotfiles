@@ -15,11 +15,11 @@
   outputs = { self, nixpkgs, home-manager, nur, nix-vscode-extensions }@inputs: {
     nixosConfigurations = {
 
-      Flareon = nixpkgs.lib.nixosSystem {
+      Blaze = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = { inherit inputs; };
         modules = [
-          ./hosts/Flareon/configuration.nix
+          ./hosts/Blaze/configuration.nix
           nur.nixosModules.nur
           home-manager.nixosModules.home-manager
           {
@@ -29,11 +29,11 @@
         ];
       };
 
-      Jolteon = nixpkgs.lib.nixosSystem {
+      Dragon = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = { inherit inputs; };
         modules = [
-          ./hosts/Jolteon/configuration.nix
+          ./hosts/Dragon/configuration.nix
           nur.nixosModules.nur
           home-manager.nixosModules.home-manager
           {

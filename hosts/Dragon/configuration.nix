@@ -2,7 +2,7 @@
 
 {
   imports = [ ../../configuration.nix ./hardware-configuration.nix ];
-  networking.hostName = "Jolteon";
+  networking.hostName = "Dragon";
 
   hardware.bluetooth.enable = true;
 
