@@ -130,7 +130,6 @@
 
     # chat
     discord-canary
-    nheko
 
     # emulators
     dolphin-emu
@@ -147,6 +146,16 @@
     vscode
     vlc
   ];
+
+  services.flatpak.enable = true;
+  services.flatpak.remotes = {
+    "flathub" = "https://dl.flathub.org/repo/flathub.flatpakrepo";
+    "nheko-nightlies" = "https://raw.githubusercontent.com/Nheko-Reborn/nheko/master/nheko-nightly.flatpakrepo"; # impure flake go BRRR
+  };
+  services.flatpak.packages = [
+    "nheko-nightlies:app/im.nheko.Nheko//master"
+  ];
+
 
   nixpkgs.config.permittedInsecurePackages = [
     "electron-25.9.0" # this is bad, but required for r2modman
