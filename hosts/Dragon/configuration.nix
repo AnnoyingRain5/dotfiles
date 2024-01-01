@@ -45,4 +45,14 @@
     # Optionally, you may need to select the appropriate driver version for your specific GPU.
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
+
+  fileSystems."/mnt/4tb_lol" = {
+    device = "/dev/disk/by-uuid/F0642AAD642A768E";
+    fsType = "ntfs";
+    };
+  fileSystems."/mnt/steam_games" = {
+    device = "/dev/disk/by-uuid/0bed1270-ce40-4715-9be1-d932cdaac68b";
+    fsType = "ext4";
+    };
+
 }
