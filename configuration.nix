@@ -126,6 +126,7 @@
     steam
     lutris
     prismlauncher
+    r2modman
 
     # chat
     discord-canary
@@ -145,6 +146,10 @@
     kleopatra
     vscode
     vlc
+  ];
+
+  nixpkgs.config.permittedInsecurePackages = [
+    "electron-25.9.0" # this is bad, but required for r2modman
   ];
 
   # for some reason, KDE partition manager needs to be enabled like this?
