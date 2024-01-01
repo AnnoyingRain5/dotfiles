@@ -151,6 +151,11 @@
     };
   };
 
+  # add japanese font that does not look like pixelart
+  fonts.packages = with pkgs; [
+    ipafont
+  ];
+
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   programs.gnupg.agent = {
