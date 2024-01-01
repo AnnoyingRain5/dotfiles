@@ -135,6 +135,10 @@
     citra
     yuzu
 
+    # kde apps that should be installed by default
+    partition-manager
+    kate
+
     # other
     firefox
     filezilla
