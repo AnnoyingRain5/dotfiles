@@ -55,6 +55,10 @@
   # Enable the KDE Plasma Desktop Environment.
   services.xserver.displayManager.sddm.enable = true;
   services.xserver.desktopManager.plasma5.enable = true;
+  services.xserver.displayManager.defaultSession = "plasmawayland";
+  environment.plasma5.excludePackages = with pkgs.libsForQt5; [
+    elisa # do not install Elisa
+  ];
 
   # Configure keymap in X11
   services.xserver = {
@@ -136,6 +140,7 @@
     filezilla
     kleopatra
     vscode
+    vlc
   ];
 
   programs.git = {
