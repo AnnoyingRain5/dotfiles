@@ -95,6 +95,7 @@
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.annoyingrains = {
     isNormalUser = true;
+    initialHashedPassword = "$y$j9T$BmeHPNCIt5arCWvzXqXNC1$JVAMf3j1FTZtD7m5Iq16qEUspVXZqKYGF835qmU7jy2";
     description = "AnnoyingRains";
     extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [
