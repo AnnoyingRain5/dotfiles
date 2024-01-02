@@ -123,7 +123,6 @@
     ## graphical apps ##
 
     # games
-    steam
     lutris
     prismlauncher
     r2modman
@@ -146,6 +145,8 @@
     vscode
     vlc
   ];
+
+  programs.steam.enable = true;
 
   services.flatpak.enable = true;
   services.flatpak.remotes = {
