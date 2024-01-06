@@ -137,6 +137,13 @@
 
     # kde apps that should be installed by default
     kate
+    plasma-vault
+    cryfs # needed for plasma-vault re: https://github.com/NixOS/nixpkgs/issues/273046
+    
+    # windows compatability - wine and proton stuff
+    wineWowPackages.stable
+    winetricks
+    protontricks
 
     # other
     firefox
@@ -145,6 +152,9 @@
     vscode
     vlc
   ];
+  xdg.portal = {
+    enable = true;
+  };
 
   programs.steam.enable = true;
 
