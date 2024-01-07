@@ -1,7 +1,7 @@
 {
   description = "System flake";
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-23.11";
+    nixpkgs.url = "github:Scrumplex/nixpkgs/nixos-monado"; # temporary, for monado
 
     nur.url = "github:nix-community/NUR";
     #nur.inputs.nixpkgs.follows = "nixpkgs";

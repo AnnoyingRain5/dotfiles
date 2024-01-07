@@ -158,6 +158,9 @@
 
   programs.steam.enable = true;
 
+  services.monado.enable = true;
+  services.monado.defaultRuntime = true;
+
   services.flatpak.enable = true;
   services.flatpak.remotes = {
     "flathub" = "https://dl.flathub.org/repo/flathub.flatpakrepo";

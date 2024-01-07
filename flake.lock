@@ -129,17 +129,18 @@
     },
     "nixpkgs_3": {
       "locked": {
-        "lastModified": 1703992652,
-        "narHash": "sha256-C0o8AUyu8xYgJ36kOxJfXIroy9if/G6aJbNOpA5W0+M=",
-        "owner": "NixOS",
+        "lastModified": 1702976236,
+        "narHash": "sha256-ug6eIsmSlHaLwMYApdQtAOlGqdAN9TLgLO8LQyLrXks=",
+        "owner": "Scrumplex",
         "repo": "nixpkgs",
-        "rev": "32f63574c85fbc80e4ba1fbb932cde9619bad25e",
+        "rev": "6ba882676036a5233523d41bfef9c9043ea111a9",
         "type": "github"
       },
       "original": {
-        "id": "nixpkgs",
-        "ref": "nixos-23.11",
-        "type": "indirect"
+        "owner": "Scrumplex",
+        "ref": "nixos-monado",
+        "repo": "nixpkgs",
+        "type": "github"
       }
     },
     "nur": {
