@@ -145,12 +145,18 @@
     winetricks
     protontricks
 
+    # libreoffice
+    libreoffice-qt
+    hunspell
+    hunspellDicts.en_AU
+
     # other
     firefox
     filezilla
     kleopatra
     vscode
     vlc
+    obs-studio
   ];
   xdg.portal = {
     enable = true;
