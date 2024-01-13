@@ -103,6 +103,10 @@
     ];
   };
 
+  services.udev.extraRules = ''
+  SUBSYSTEMS=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0660", TAG+="uaccess" 
+  '';
+
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
@@ -139,6 +143,8 @@
     kate
     plasma-vault
     cryfs # needed for plasma-vault re: https://github.com/NixOS/nixpkgs/issues/273046
+    kcalc
+    k3b
     
     # windows compatability - wine and proton stuff
     wineWowPackages.stable
@@ -157,6 +163,7 @@
     vscode
     vlc
     obs-studio
+    cura
   ];
   xdg.portal = {
     enable = true;
