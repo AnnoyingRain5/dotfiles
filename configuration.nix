@@ -145,6 +145,7 @@
     cryfs # needed for plasma-vault re: https://github.com/NixOS/nixpkgs/issues/273046
     kcalc
     k3b
+    ktorrent
     
     # windows compatability - wine and proton stuff
     wineWowPackages.stable
