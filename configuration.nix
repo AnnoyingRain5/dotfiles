@@ -72,6 +72,8 @@
   # enable dconf, this is required for home-manager gtk config
   programs.dconf.enable = true;
 
+  programs.direnv.enable = true;
+
   # Enable sound with pipewire.
   sound.enable = true;
   hardware.pulseaudio.enable = false;
@@ -162,18 +164,22 @@
     filezilla
     kleopatra
     vscode
+    jetbrains.rider
     vlc
     obs-studio
-    cura
+
+    # development (Crank It Up)
+    dotnetCorePackages.sdk_6_0
+    xorg.libXi
+    dotnet-runtime
+    libglvnd
+    udev
   ];
   xdg.portal = {
     enable = true;
   };
 
   programs.steam.enable = true;
-
-  services.monado.enable = true;
-  services.monado.defaultRuntime = true;
 
   services.flatpak.enable = true;
   services.flatpak.remotes = {
@@ -197,6 +203,8 @@
     config = {
       user.name = "AnnoyingRains";
       user.email = "annoyingrain5@gmail.com";
+      commit.gpgsign = true;
+      user.signingkey = "F42DAC9E42C738BC";
     };
   };
 
