@@ -168,6 +168,7 @@
     vlc
     obs-studio
     cura
+    nextcloud-client
 
     # development (Crank It Up)
     dotnetCorePackages.sdk_6_0
