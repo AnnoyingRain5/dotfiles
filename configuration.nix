@@ -69,6 +69,13 @@
   # Enable CUPS to print documents.
   services.printing.enable = true;
 
+  # enable Avahi, adds IPP Everywhere support for printing
+  services.avahi = {
+    enable = true;
+    nssmdns = true;
+    openFirewall = true;
+  };
+
   # enable dconf, this is required for home-manager gtk config
   programs.dconf.enable = true;
 
@@ -159,6 +166,11 @@
     hunspell
     hunspellDicts.en_AU
 
+    # TAFE course
+    teams-for-linux
+    python3
+    jetbrains.pycharm-community
+
     # other
     firefox
     filezilla
@@ -190,12 +202,9 @@
   };
   services.flatpak.packages = [
     "nheko-nightlies:app/im.nheko.Nheko//master"
+    "flathub:app/dev.slimevr.SlimeVR/x86_64/stable"
   ];
 
-
-  nixpkgs.config.permittedInsecurePackages = [
-    "electron-25.9.0" # this is bad, but required for r2modman
-  ];
 
   # for some reason, KDE partition manager needs to be enabled like this?
   programs.partition-manager.enable = true;
