@@ -207,8 +207,9 @@
   ];
 
 
-  # for some reason, KDE partition manager needs to be enabled like this?
+  # enable extra KDE apps
   programs.partition-manager.enable = true;
+  programs.kdeconnect.enable = true;
 
   programs.git = {
     enable = true;
@@ -240,7 +241,7 @@
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
+  networking.firewall.enable = false;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
