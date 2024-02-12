@@ -170,6 +170,7 @@
     teams-for-linux
     python3
     jetbrains.pycharm-community
+    blender
 
     # other
     firefox
