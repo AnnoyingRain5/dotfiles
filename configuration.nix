@@ -148,6 +148,7 @@
     dolphin-emu
     citra
     yuzu
+    xemu
 
     # kde apps that should be installed by default
     kate
