@@ -82,6 +82,9 @@
 
   programs.direnv.enable = true;
 
+  # required for yubiauth
+  services.pcscd.enable = true;
+
   # Enable sound with pipewire.
   sound.enable = true;
   hardware.pulseaudio.enable = false;
@@ -184,6 +187,7 @@
     obs-studio
     cura
     nextcloud-client
+    yubioath-flutter
     unityhub # installed 2022.3.6f1 using the uri: unityhub://2022.3.6f1/b9e6e7e9fa2d
 
     # development (Crank It Up)
