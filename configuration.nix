@@ -55,9 +55,9 @@
 
   # Enable the KDE Plasma Desktop Environment.
   services.xserver.displayManager.sddm.enable = true;
-  services.xserver.desktopManager.plasma5.enable = true;
-  services.xserver.displayManager.defaultSession = "plasmawayland";
-  environment.plasma5.excludePackages = with pkgs.libsForQt5; [
+  services.xserver.desktopManager.plasma6.enable = true;
+  services.xserver.displayManager.defaultSession = "plasma";
+  environment.plasma6.excludePackages = with pkgs.libsForQt5; [
     elisa # do not install Elisa
   ];
 
