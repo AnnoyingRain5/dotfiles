@@ -231,6 +231,10 @@
   # add japanese font that does not look like pixelart
   fonts.packages = with pkgs; [
     ipafont
+    (import (builtins.fetchTarball {
+      url = "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v1.tar.gz";
+      sha256 = "sha256:0zxm2kz92h8qcrrjlg7q3ppci237z1hy4w6y97al6i8x6i131iyy"; })
+      { inherit pkgs; }).avali-scratch
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
