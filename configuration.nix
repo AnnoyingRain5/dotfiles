@@ -4,7 +4,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
 {
   imports = [ ./home.nix ];
@@ -55,7 +55,7 @@
 
   # Enable the KDE Plasma Desktop Environment.
   services.xserver.displayManager.sddm.enable = true;
-  services.xserver.desktopManager.plasma6.enable = true;
+  services.desktopManager.plasma6.enable = true;
   services.xserver.displayManager.defaultSession = "plasma";
   environment.plasma6.excludePackages = with pkgs.libsForQt5; [
     elisa # do not install Elisa
@@ -63,8 +63,8 @@
 
   # Configure keymap in X11
   services.xserver = {
-    layout = "au";
-    xkbVariant = "";
+    xkb.layout = "au";
+    xkb.variant = "";
   };
 
   # Enable CUPS to print documents.
@@ -73,7 +73,7 @@
   # enable Avahi, adds IPP Everywhere support for printing
   services.avahi = {
     enable = true;
-    nssmdns = true;
+    nssmdns4 = true;
     openFirewall = true;
   };
 
@@ -149,8 +149,8 @@
 
     # emulators
     dolphin-emu
-    citra
-    yuzu
+    # here lies citra and yuzu...
+    ryujinx
     xemu
 
     # kde apps that should be installed by default
@@ -181,7 +181,30 @@
     firefox
     filezilla
     kleopatra
-    vscode
+    (vscode-with-extensions.override {
+      vscodeExtensions = with inputs.nix-vscode-extensions.extensions.x86_64-linux.vscode-marketplace; [
+        ms-dotnettools.csharp
+        njpwerner.autodocstring
+        samuelcolvin.jinjahtml
+        ms-python.black-formatter
+        jongrant.csharpsortusings
+        csharpier.csharpier-vscode
+        ms-azuretools.vscode-docker
+        tamasfe.even-better-toml
+        github.vscode-github-actions
+        visualstudioexptteam.vscodeintellicode
+        visualstudioexptteam.intellicode-api-usage-examples
+        # ms-dotnettools.csdevkit # this seems to be broken?
+        # ms-dotnettools.vscodeintellicode-csharp # also broken ):
+        wholroyd.jinja
+        yandeu.five-server
+        ms-python.vscode-pylance
+        ms-python.python
+        qwtel.sqlite-viewer
+        jnoortheen.nix-ide
+      ];
+      }
+    )
     jetbrains.rider
     vlc
     obs-studio
@@ -242,6 +265,7 @@
   programs.gnupg.agent = {
     enable = true;
     enableSSHSupport = true;
+    pinentryPackage = lib.mkForce pkgs.pinentry-qt;
   };
   # List services that you want to enable:
 
