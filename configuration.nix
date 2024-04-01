@@ -8,19 +8,27 @@
 
 {
   imports = [ ./home.nix ];
+
   # Bootloader.
   boot.loader = {
     grub = {
-  	  enable = true;
-  	  devices = [ "nodev" ];
+      enable = true;
+      devices = [ "nodev" ];
       efiSupport = true;
-  	  useOSProber = true;
+      useOSProber = true;
     };
     efi = {
-  	  canTouchEfiVariables = true;
-  	  efiSysMountPoint = "/boot";
+      canTouchEfiVariables = true;
+      efiSysMountPoint = "/boot";
     };
   };
+
+  # graphical decryption splash screen
+  boot.initrd.systemd.enable = true;
+  boot.plymouth.enable = true;
+  boot.plymouth.theme = "breeze";
+  boot.kernelParams = [ "quiet" ];
+
   boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
 
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -117,7 +125,7 @@
   };
 
   services.udev.extraRules = ''
-  SUBSYSTEMS=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0660", TAG+="uaccess" 
+    SUBSYSTEMS=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0660", TAG+="uaccess" 
   '';
 
   # Allow unfree packages
@@ -160,7 +168,7 @@
     kcalc
     k3b
     ktorrent
-    
+
     # windows compatability - wine and proton stuff
     wineWowPackages.stable
     winetricks
@@ -203,7 +211,7 @@
         qwtel.sqlite-viewer
         jnoortheen.nix-ide
       ];
-      }
+    }
     )
     jetbrains.rider
     vlc
@@ -254,9 +262,11 @@
   # add japanese font that does not look like pixelart
   fonts.packages = with pkgs; [
     ipafont
-    (import (builtins.fetchTarball {
-      url = "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v1.tar.gz";
-      sha256 = "sha256:0zxm2kz92h8qcrrjlg7q3ppci237z1hy4w6y97al6i8x6i131iyy"; })
+    (import
+      (builtins.fetchTarball {
+        url = "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v1.tar.gz";
+        sha256 = "sha256:0zxm2kz92h8qcrrjlg7q3ppci237z1hy4w6y97al6i8x6i131iyy";
+      })
       { inherit pkgs; }).avali-scratch
   ];
 
