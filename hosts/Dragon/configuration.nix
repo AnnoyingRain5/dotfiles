@@ -46,10 +46,11 @@
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
-  fileSystems."/mnt/4tb_lol" = {
-    device = "/dev/disk/by-uuid/F0642AAD642A768E";
-    fsType = "ntfs";
+  fileSystems."/mnt/4tb_lmao" = {
+    device = "/dev/disk/by-uuid/daaf3ad9-8d28-4325-bd5d-420b4d01c027";
+    fsType = "btrfs";
     };
+
   fileSystems."/mnt/steam_games" = {
     device = "/dev/disk/by-uuid/0bed1270-ce40-4715-9be1-d932cdaac68b";
     fsType = "ext4";
