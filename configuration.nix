@@ -9,105 +9,66 @@
 {
   imports = [ ./home.nix ];
 
-  # Bootloader.
-  boot.loader = {
-    grub = {
+
+  boot = {
+    # graphical decryption splash screen
+    initrd.systemd.enable = true;
+    kernelParams = [ "quiet" ];
+    extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
+    plymouth = {
       enable = true;
-      devices = [ "nodev" ];
-      efiSupport = true;
-      useOSProber = true;
+      theme = "breeze";
     };
-    efi = {
-      canTouchEfiVariables = true;
-      efiSysMountPoint = "/boot";
+
+    loader = {
+      grub = {
+        enable = true;
+        devices = [ "nodev" ];
+        efiSupport = true;
+        useOSProber = true;
+      };
+
+      efi = {
+        canTouchEfiVariables = true;
+        efiSysMountPoint = "/boot";
+      };
     };
+
   };
 
-  # graphical decryption splash screen
-  boot.initrd.systemd.enable = true;
-  boot.plymouth.enable = true;
-  boot.plymouth.theme = "breeze";
-  boot.kernelParams = [ "quiet" ];
+  networking = {
+    networking.networkmanager.enable = true;
 
-  boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
+    # Open ports in the firewall.
+    # firewall.allowedTCPPorts = [ ... ];
+    # firewall.allowedUDPPorts = [ ... ];
+    # Or disable the firewall altogether.
+    firewall.enable = false;
 
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+    # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  # Enable networking
-  networking.networkmanager.enable = true;
+    # Configure network proxy if necessary
+    # networking.proxy.default = "http://user:password@proxy:port/";
+    # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+  };
 
   # Set your time zone.
   time.timeZone = "Australia/Sydney";
 
   # Select internationalisation properties.
-  i18n.defaultLocale = "en_AU.UTF-8";
-
-  i18n.extraLocaleSettings = {
-    LC_ALL = "en_AU.UTF-8";
+  i18n = {
+    defaultLocale = "en_AU.UTF-8";
+    extraLocaleSettings.LC_ALL = "en_AU.UTF-8";
   };
 
-  services.usbmuxd = {
-    enable = true;
-    package = pkgs.usbmuxd2;
-  };
-  # Enable the X11 windowing system.
-  services.xserver.enable = true;
-
-  # Enable the KDE Plasma Desktop Environment.
-  services.xserver.displayManager.sddm.enable = true;
-  services.desktopManager.plasma6.enable = true;
-  services.xserver.displayManager.defaultSession = "plasma";
   environment.plasma6.excludePackages = with pkgs.libsForQt5; [
     elisa # do not install Elisa
   ];
-
-  # Configure keymap in X11
-  services.xserver = {
-    xkb.layout = "au";
-    xkb.variant = "";
-  };
-
-  # Enable CUPS to print documents.
-  services.printing.enable = true;
-
-  # enable Avahi, adds IPP Everywhere support for printing
-  services.avahi = {
-    enable = true;
-    nssmdns4 = true;
-    openFirewall = true;
-  };
-
-  # enable dconf, this is required for home-manager gtk config
-  programs.dconf.enable = true;
-
-  programs.direnv.enable = true;
-
-  # required for yubiauth
-  services.pcscd.enable = true;
 
   # Enable sound with pipewire.
   sound.enable = true;
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-    # If you want to use JACK applications, uncomment this
-    #jack.enable = true;
-
-    # use the example session manager (no others are packaged yet so this is enabled by default,
-    # no need to redefine it in your config for now)
-    #media-session.enable = true;
-  };
-
-  # Enable touchpad support (enabled default in most desktopManager).
-  # services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.annoyingrains = {
@@ -119,14 +80,6 @@
       # using system packages instead
     ];
   };
-
-  # rule 1: 3d printer (?)
-  # rule 2: Nintendo Switch (RCM)
-  services.udev.extraRules = ''
-    SUBSYSTEMS=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0660", TAG+="uaccess"
-    
-    SUBSYSTEM=="usb", ATTR{idVendor}=="0955", MODE="0664", GROUP="plugdev"
-  '';
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -243,32 +196,93 @@
     enable = true;
   };
 
-  programs.steam.enable = true;
+  programs = {
+    steam.enable = true;
+    partition-manager.enable = true;
+    kdeconnect.enable = true;
+    virt-manager.enable = true;
+    dconf.enable = true; # requires for home-manager gtk
+    direnv.enable = true;
 
-  services.flatpak.enable = true;
-  services.flatpak.remotes = {
-    "flathub" = "https://dl.flathub.org/repo/flathub.flatpakrepo";
-    "nheko-nightlies" = "https://raw.githubusercontent.com/Nheko-Reborn/nheko/master/nheko-nightly.flatpakrepo"; # impure flake go BRRR
-  };
-  services.flatpak.packages = [
-    "nheko-nightlies:app/im.nheko.Nheko//master"
-    "flathub:app/dev.slimevr.SlimeVR/x86_64/stable"
-  ];
-
-
-  # enable extra KDE apps
-  programs.partition-manager.enable = true;
-  programs.kdeconnect.enable = true;
-
-  programs.git = {
-    enable = true;
-    config = {
-      user.name = "AnnoyingRains";
-      user.email = "annoyingrain5@gmail.com";
-      commit.gpgsign = true;
-      user.signingkey = "F42DAC9E42C738BC";
+    git = {
+      enable = true;
+      config = {
+        user.name = "AnnoyingRains";
+        user.email = "annoyingrain5@gmail.com";
+        commit.gpgsign = true;
+        user.signingkey = "F42DAC9E42C738BC";
+      };
     };
+
+    gnupg.agent = {
+      enable = true;
+      enableSSHSupport = true;
+      pinentryPackage = lib.mkForce pkgs.pinentry-qt;
+    };
+
   };
+
+  services = {
+    # openssh.enable = true;
+    printing.enable = true;
+    # required for yubiauth
+    pcscd.enable = true;
+
+    # rule 1: 3d printer (?)
+    # rule 2: Nintendo Switch (RCM)
+    udev.extraRules = ''
+      SUBSYSTEMS=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0660", TAG+="uaccess"
+
+      SUBSYSTEM=="usb", ATTR{idVendor}=="0955", MODE="0664", GROUP="plugdev"
+    '';
+
+    # enable Avahi, adds IPP Everywhere support for printing
+    avahi = {
+      enable = true;
+      nssmdns4 = true;
+      openFirewall = true;
+    };
+
+    usbmuxd = {
+      enable = true;
+      package = pkgs.usbmuxd2;
+    };
+    # Enable the X11 windowing system.
+    xserver = {
+      enable = true;
+      displayManager.sddm.enable = true;
+      displayManager.defaultSession = "plasma";
+      xkb.layout = "au";
+      xkb.variant = "";
+    };
+
+    flatpak = {
+      enable = true;
+      remotes = {
+        "flathub" = "https://dl.flathub.org/repo/flathub.flatpakrepo";
+        "nheko-nightlies" = "https://raw.githubusercontent.com/Nheko-Reborn/nheko/master/nheko-nightly.flatpakrepo"; # impure flake go BRRR
+      };
+      packages = [
+        "nheko-nightlies:app/im.nheko.Nheko//master"
+        "flathub:app/dev.slimevr.SlimeVR/x86_64/stable"
+      ];
+    };
+
+    pipewire = {
+      enable = true;
+      alsa.enable = true;
+      alsa.support32Bit = true;
+      pulse.enable = true;
+      # If you want to use JACK applications, uncomment this
+      #jack.enable = true;
+
+      # use the example session manager (no others are packaged yet so this is enabled by default,
+      # no need to redefine it in your config for now)
+      #media-session.enable = true;
+    };
+
+  };
+  desktopManager.plasma6.enable = true;
 
   # add japanese font that does not look like pixelart
   fonts.packages = with pkgs; [
@@ -281,30 +295,26 @@
       { inherit pkgs; }).avali-scratch
   ];
 
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  programs.gnupg.agent = {
-    enable = true;
-    enableSSHSupport = true;
-    pinentryPackage = lib.mkForce pkgs.pinentry-qt;
+  virtualisation = {
+    libvirtd.enable = true;
+    spiceUSBRedirection.enable = true;
   };
-  # List services that you want to enable:
 
-  # Enable the OpenSSH daemon.
-  # services.openssh.enable = true;
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  networking.firewall.enable = false;
+  environment = {
+    sessionVariables.NIXOS_OZONE_WL = "1"; # force electron apps to run on wayland
+    interactiveShellInit = ''
+      alias nano=micro
+      unset SSH_AGENT_PID
+      if [ "''${gnupg_SSH_AUTH_SOCK_by:-0}" -ne $$ ]; then
+        export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
+      fi
+      export GPG_TTY=$(tty)
+      gpg-connect-agent updatestartuptty /bye >/dev/null
+    '';
+  };
 
-  virtualisation.libvirtd.enable = true;
-  programs.virt-manager.enable = true;
-  virtualisation.spiceUSBRedirection.enable = true;
-
-
-  environment.sessionVariables.NIXOS_OZONE_WL = "1"; # force electron apps to run on wayland
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
@@ -313,16 +323,4 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "23.05"; # Did you read the comment?
-
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
-
-  environment.interactiveShellInit = ''
-    alias nano=micro
-    unset SSH_AGENT_PID
-    if [ "''${gnupg_SSH_AUTH_SOCK_by:-0}" -ne $$ ]; then
-      export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
-    fi
-    export GPG_TTY=$(tty)
-    gpg-connect-agent updatestartuptty /bye >/dev/null
-  '';
 }
