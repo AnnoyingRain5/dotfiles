@@ -23,6 +23,14 @@
       };
     };
 
+    # https://nixos.wiki/wiki/Virt-manager
+    dconf.settings = {
+      "org/virt-manager/virt-manager/connections" = {
+        autoconnect = [ "qemu:///system" ];
+        uris = [ "qemu:///system" ];
+      };
+    };
+
     # write sshcontrol with my gpg/ssh keygrip.
     # This allows me to ssh using my GPG key
     home.file.".gnupg/sshcontrol" = {

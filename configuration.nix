@@ -47,17 +47,13 @@
   i18n.defaultLocale = "en_AU.UTF-8";
 
   i18n.extraLocaleSettings = {
-    LC_ADDRESS = "en_AU.UTF-8";
-    LC_IDENTIFICATION = "en_AU.UTF-8";
-    LC_MEASUREMENT = "en_AU.UTF-8";
-    LC_MONETARY = "en_AU.UTF-8";
-    LC_NAME = "en_AU.UTF-8";
-    LC_NUMERIC = "en_AU.UTF-8";
-    LC_PAPER = "en_AU.UTF-8";
-    LC_TELEPHONE = "en_AU.UTF-8";
-    LC_TIME = "en_AU.UTF-8";
+    LC_ALL = "en_AU.UTF-8";
   };
 
+  services.usbmuxd = {
+    enable = true;
+    package = pkgs.usbmuxd2;
+  };
   # Enable the X11 windowing system.
   services.xserver.enable = true;
 
@@ -124,8 +120,12 @@
     ];
   };
 
+  # rule 1: 3d printer (?)
+  # rule 2: Nintendo Switch (RCM)
   services.udev.extraRules = ''
-    SUBSYSTEMS=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0660", TAG+="uaccess" 
+    SUBSYSTEMS=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0660", TAG+="uaccess"
+    
+    SUBSYSTEM=="usb", ATTR{idVendor}=="0955", MODE="0664", GROUP="plugdev"
   '';
 
   # Allow unfree packages
@@ -145,21 +145,28 @@
     nixpkgs-fmt # mainly used in vscode
     pciutils
 
+    # idevice support
+    libimobiledevice
+    ifuse
+
     ## graphical apps ##
 
     # games
     lutris
     prismlauncher
     r2modman
+    osu-lazer-bin
 
     # chat
     discord-canary
+    telegram-desktop
 
     # emulators
     dolphin-emu
     # here lies citra and yuzu...
     ryujinx
     xemu
+    cemu
 
     # kde apps that should be installed by default
     kate
@@ -189,6 +196,8 @@
     firefox
     filezilla
     kleopatra
+    keepkassxc
+    feishin
     (vscode-with-extensions.override {
       vscodeExtensions = with inputs.nix-vscode-extensions.extensions.x86_64-linux.vscode-marketplace; [
         ms-dotnettools.csharp
@@ -287,6 +296,13 @@
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   networking.firewall.enable = false;
+
+  virtualisation.libvirtd.enable = true;
+  programs.virt-manager.enable = true;
+  virtualisation.spiceUSBRedirection.enable = true;
+
+
+  environment.sessionVariables.NIXOS_OZONE_WL = "1"; # force electron apps to run on wayland
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
