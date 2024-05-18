@@ -37,7 +37,7 @@
   };
 
   networking = {
-    networking.networkmanager.enable = true;
+    networkmanager.enable = true;
 
     # Open ports in the firewall.
     # firewall.allowedTCPPorts = [ ... ];
@@ -177,13 +177,13 @@
     firefox
     filezilla
     kleopatra
-    keepkassxc
+    keepassxc
     feishin
     vlc
     obs-studio
     cura
     nextcloud-client
-    yubioath-flutter
+    yubioath-flutter    
 
     # development (Crank It Up)
     dotnetCorePackages.sdk_6_0
@@ -191,6 +191,13 @@
     dotnet-runtime
     libglvnd
     udev
+
+    (import
+      (builtins.fetchTarball {
+        url = "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v2.tar.gz";
+        sha256 = "sha256:0g08rc92q9n5vvnr2w51alr1z38nf12c23frzjag25xf3g4qw6p4";
+      })
+      { inherit pkgs; }).discord-krisp-patcher
   ];
   xdg.portal = {
     enable = true;
@@ -223,6 +230,7 @@
   };
 
   services = {
+    desktopManager.plasma6.enable = true;
     # openssh.enable = true;
     printing.enable = true;
     # required for yubiauth
@@ -282,14 +290,13 @@
     };
 
   };
-  desktopManager.plasma6.enable = true;
 
   # add japanese font that does not look like pixelart
   fonts.packages = with pkgs; [
     ipafont
     (import
       (builtins.fetchTarball {
-        url = "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v1.tar.gz";
+        url = "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v2.tar.gz";
         sha256 = "sha256:0zxm2kz92h8qcrrjlg7q3ppci237z1hy4w6y97al6i8x6i131iyy";
       })
       { inherit pkgs; }).avali-scratch
