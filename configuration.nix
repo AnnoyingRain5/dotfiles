@@ -59,11 +59,22 @@
   i18n = {
     defaultLocale = "en_AU.UTF-8";
     extraLocaleSettings.LC_ALL = "en_AU.UTF-8";
+    inputMethod = {
+      enabled = "fcitx5";
+      fcitx5 = {
+        waylandFrontend = true;
+        addons = with pkgs; [
+          fcitx5-mozc
+          fcitx5-gtk
+        ];
+      };
+    };
   };
 
-  environment.plasma6.excludePackages = with pkgs.libsForQt5; [
-    elisa # do not install Elisa
-  ];
+  environment.plasma6.excludePackages = with pkgs.libsForQt5;
+    [
+      elisa # do not install Elisa
+    ];
 
   # Enable sound with pipewire.
   sound.enable = true;
@@ -97,6 +108,10 @@
     htop
     nixpkgs-fmt # mainly used in vscode
     pciutils
+    ffmpeg
+
+    #shared folder for VM
+    virtiofsd
 
     # idevice support
     libimobiledevice
@@ -183,7 +198,7 @@
     obs-studio
     cura
     nextcloud-client
-    yubioath-flutter    
+    yubioath-flutter
 
     # development (Crank It Up)
     dotnetCorePackages.sdk_6_0
