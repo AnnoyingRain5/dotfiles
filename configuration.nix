@@ -304,6 +304,11 @@
       #media-session.enable = true;
     };
 
+    monado = {
+      enable = true;
+      defaultRuntime = true;
+    };
+
   };
 
   # add japanese font that does not look like pixelart
