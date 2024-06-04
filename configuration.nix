@@ -225,6 +225,7 @@
     virt-manager.enable = true;
     dconf.enable = true; # requires for home-manager gtk
     direnv.enable = true;
+    calls.enable = true;
 
     git = {
       enable = true;
@@ -270,13 +271,17 @@
       enable = true;
       package = pkgs.usbmuxd2;
     };
+
     # Enable the X11 windowing system.
     xserver = {
       enable = true;
-      displayManager.sddm.enable = true;
-      displayManager.defaultSession = "plasma";
       xkb.layout = "au";
       xkb.variant = "";
+    };
+
+    displayManager = {
+      sddm.enable = true;
+      defaultSession = "plasma";
     };
 
     flatpak = {
@@ -317,7 +322,7 @@
     (import
       (builtins.fetchTarball {
         url = "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v2.tar.gz";
-        sha256 = "sha256:0zxm2kz92h8qcrrjlg7q3ppci237z1hy4w6y97al6i8x6i131iyy";
+        sha256 = "sha256:0g08rc92q9n5vvnr2w51alr1z38nf12c23frzjag25xf3g4qw6p4";
       })
       { inherit pkgs; }).avali-scratch
   ];
