@@ -109,6 +109,7 @@
     nixpkgs-fmt # mainly used in vscode
     pciutils
     ffmpeg
+    distrobox
 
     #shared folder for VM
     virtiofsd
@@ -330,6 +331,8 @@
   virtualisation = {
     libvirtd.enable = true;
     spiceUSBRedirection.enable = true;
+    # for development and distrobox
+    docker.enable = true;
   };
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
