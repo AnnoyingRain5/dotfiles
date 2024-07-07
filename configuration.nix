@@ -145,6 +145,7 @@
     dolphin-emu
     # here lies citra and yuzu...
     ryujinx
+    lime3ds
     xemu
     cemu
 
@@ -202,6 +203,8 @@
 
     # other
     firefox
+    krita
+    thunderbird
     filezilla
     kleopatra
     keepassxc
