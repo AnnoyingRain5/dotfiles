@@ -37,5 +37,11 @@
       source = dotfiles/sshcontrol;
     };
 
+    # Configure GPG to work with pcscd
+    # https://blog.apdu.fr/posts/2019/06/gnupg-and-pcsc-conflicts/
+    home.file.".gnupg/scdaemon.conf" = {
+      source = dotfiles/scdaemon.conf;
+    };
+
   };
 }
