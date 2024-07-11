@@ -2,6 +2,7 @@
   # do something with home-manager here, for instance:
   imports = [ inputs.home-manager.nixosModules.home-manager ];
 
+  home-manager.backupFileExtension = ".home-manager.bak";
   home-manager.users.annoyingrains = {
     /* The home.stateVersion option does not have a default and must be set */
     home.stateVersion = "23.11";
@@ -19,7 +20,11 @@
           return-youtube-dislikes
           reddit-moderator-toolbox
           user-agent-string-switcher
+          keepassxc-browser
         ];
+        settings = {
+          "signon.rememberSignons" = false;
+        };
       };
     };
 
