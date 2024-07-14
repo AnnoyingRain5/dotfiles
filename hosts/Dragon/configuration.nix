@@ -5,6 +5,7 @@
   networking.hostName = "Dragon";
 
   hardware.bluetooth.enable = true;
+  hardware.bluetooth.settings.general.ControllerMode = "bredr";
 
   ### Nvidia ###
 
