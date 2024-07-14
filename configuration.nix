@@ -167,9 +167,6 @@
     hunspellDicts.en_AU
 
     # TAFE course
-    teams-for-linux
-    python3
-    jetbrains.pycharm-community
     blender
 
     # programming
@@ -192,11 +189,14 @@
         yandeu.five-server
         ms-python.vscode-pylance
         ms-python.python
+        ms-python.debugpy
         qwtel.sqlite-viewer
         jnoortheen.nix-ide
       ];
     }
     )
+    python3
+    jetbrains.pycharm-professional
     jetbrains.rider
     unityhub # installed 2022.3.6f1 using the uri: unityhub://2022.3.6f1/b9e6e7e9fa2d
 
