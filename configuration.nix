@@ -4,11 +4,17 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, lib, inputs, ... }:
+{ config, pkgs, lib, inputs, nixpkgs-old, ... }:
 
 {
   imports = [ ./home.nix ];
 
+  nixpkgs.overlays = [
+    (self: super: {
+      # use old firefox until 130 releases, due the "fun" wayland crash bug
+      firefox = nixpkgs-old.firefox;
+    })
+  ];
 
   boot = {
     # graphical decryption splash screen
@@ -77,8 +83,8 @@
     ];
 
   # Enable sound with pipewire.
-  sound.enable = true;
   hardware.pulseaudio.enable = false;
+  hardware.new-lg4ff.enable = true;
   security.rtkit.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
@@ -172,6 +178,7 @@
     # programming
     (vscode-with-extensions.override {
       vscodeExtensions = with inputs.nix-vscode-extensions.extensions.x86_64-linux.vscode-marketplace; [
+        ms-vsliveshare.vsliveshare
         ms-dotnettools.csharp
         njpwerner.autodocstring
         samuelcolvin.jinjahtml
@@ -208,7 +215,7 @@
     feishin
     vlc
     obs-studio
-    cura
+    #cura https://github.com/NixOS/nixpkgs/issues/186570
     nextcloud-client
     yubioath-flutter
 
@@ -266,10 +273,13 @@
 
     # rule 1: 3d printer (?)
     # rule 2: Nintendo Switch (RCM)
+    # rule 3: G29 racing wheel
     udev.extraRules = ''
       SUBSYSTEMS=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0660", TAG+="uaccess"
 
       SUBSYSTEM=="usb", ATTR{idVendor}=="0955", MODE="0664", GROUP="plugdev"
+
+      SUBSYSTEMS=="hid", KERNELS=="0003:046D:C24F.????", DRIVERS=="logitech", RUN+="/bin/sh -c 'chmod 666 %S%p/../../../range; chmod 777 %S%p/../../../leds/ %S%p/../../../leds/*; chmod 666 %S%p/../../../leds/*/brightness'"
     '';
 
     # enable Avahi, adds IPP Everywhere support for printing

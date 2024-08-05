@@ -2,7 +2,7 @@
   description = "System flake";
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
-
+    nixpkgs-old.url = "github:NixOS/nixpkgs/e8057b67ebf307f01bdcc8fba94d94f75039d1f6";
     nur.url = "github:nix-community/NUR";
     #nur.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -14,12 +14,19 @@
     flatpaks.url = "github:GermanBread/declarative-flatpak/stable";
   };
 
-  outputs = { self, nixpkgs, home-manager, nur, nix-vscode-extensions, flatpaks }@inputs: {
+  outputs = { self, nixpkgs, home-manager, nur, nix-vscode-extensions, flatpaks, nixpkgs-old }@inputs: {
     nixosConfigurations = {
 
-      Blaze = nixpkgs.lib.nixosSystem {
+      Blaze = nixpkgs.lib.nixosSystem rec {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs; };
+        specialArgs = {
+          inherit inputs;
+
+          nixpkgs-old = import nixpkgs-old {
+            inherit system;
+            config.allowUnfree = true;
+          };
+        };
         modules = [
           ./hosts/Blaze/configuration.nix
           nur.nixosModules.nur
@@ -32,9 +39,15 @@
         ];
       };
 
-      Dragon = nixpkgs.lib.nixosSystem {
+      Dragon = nixpkgs.lib.nixosSystem rec {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs; };
+        specialArgs = {
+          inherit inputs;
+          nixpkgs-old = import nixpkgs-old {
+            inherit system;
+            config.allowUnfree = true;
+          };
+        };
         modules = [
           ./hosts/Dragon/configuration.nix
           nur.nixosModules.nur
