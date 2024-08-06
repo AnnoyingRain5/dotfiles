@@ -209,6 +209,7 @@
 
     # other
     firefox
+    ungoogled-chromium
     thunderbird
     filezilla
     kleopatra
