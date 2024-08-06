@@ -209,6 +209,7 @@
 
     # other
     firefox
+    thunderbird
     filezilla
     kleopatra
     keepassxc
