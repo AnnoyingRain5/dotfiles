@@ -93,7 +93,7 @@
       isNormalUser = true;
       initialHashedPassword = "$y$j9T$BmeHPNCIt5arCWvzXqXNC1$JVAMf3j1FTZtD7m5Iq16qEUspVXZqKYGF835qmU7jy2";
       description = "AnnoyingRains";
-      extraGroups = [ "networkmanager" "wheel" ];
+      extraGroups = [ "networkmanager" "wheel" "wireshark" ];
       packages = with pkgs; [
         # using system packages instead
       ];
@@ -216,6 +216,7 @@
     keepassxc
     feishin
     vlc
+    wireshark
     obs-studio
     #cura https://github.com/NixOS/nixpkgs/issues/186570
     nextcloud-client
@@ -247,6 +248,7 @@
     dconf.enable = true; # requires for home-manager gtk
     direnv.enable = true;
     calls.enable = true;
+    wireshark.enable = true;
 
     git = {
       enable = true;
@@ -305,6 +307,7 @@
 
     displayManager = {
       sddm.enable = true;
+	    sddm.wayland.enable = true;
       defaultSession = "plasma";
     };
 
