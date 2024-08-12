@@ -4,15 +4,14 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, lib, inputs, nixpkgs-old, ... }:
+{ config, pkgs, lib, inputs, nixpkgs-vkl, stardust, ... }:
 
 {
   imports = [ ./home.nix ];
 
   nixpkgs.overlays = [
     (self: super: {
-      # use old firefox until 130 releases, due the "fun" wayland crash bug
-      firefox = nixpkgs-old.firefox;
+      monado-vulkan-layers = nixpkgs-vkl.monado-vulkan-layers;
     })
   ];
 
@@ -41,7 +40,6 @@
     };
 
   };
-
   networking = {
     networkmanager.enable = true;
 
@@ -207,6 +205,11 @@
     jetbrains.rider
     unityhub # installed 2022.3.6f1 using the uri: unityhub://2022.3.6f1/b9e6e7e9fa2d
 
+    # VR
+    wlx-overlay-s
+    opencomposite
+    beatsabermodmanager
+
     # other
     firefox
     ungoogled-chromium
@@ -215,6 +218,7 @@
     kleopatra
     keepassxc
     feishin
+    mangohud
     vlc
     wireshark
     obs-studio
@@ -267,6 +271,8 @@
     };
 
   };
+  systemd.user.services."monado".environment.STEAMVR_LH_ENABLE = "true";
+  hardware.opengl.extraPackages = [ pkgs.monado-vulkan-layers ];
 
   services = {
     desktopManager.plasma6.enable = true;
@@ -278,12 +284,16 @@
     # rule 1: 3d printer (?)
     # rule 2: Nintendo Switch (RCM)
     # rule 3: G29 racing wheel
+    # rule 4: pimax 5kx
     udev.extraRules = ''
       SUBSYSTEMS=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0660", TAG+="uaccess"
 
       SUBSYSTEM=="usb", ATTR{idVendor}=="0955", MODE="0664", GROUP="plugdev"
 
       SUBSYSTEMS=="hid", KERNELS=="0003:046D:C24F.????", DRIVERS=="logitech", RUN+="/bin/sh -c 'chmod 666 %S%p/../../../range; chmod 777 %S%p/../../../leds/ %S%p/../../../leds/*; chmod 666 %S%p/../../../leds/*/brightness'"
+
+      ATTRS{idVendor}=="0483", ATTRS{idProduct}=="0101", TAG+="uaccess", ENV{ID_xrhardware}="1"
+
     '';
 
     # enable Avahi, adds IPP Everywhere support for printing
@@ -307,7 +317,7 @@
 
     displayManager = {
       sddm.enable = true;
-	    sddm.wayland.enable = true;
+      sddm.wayland.enable = true;
       defaultSession = "plasma";
     };
 
@@ -339,8 +349,20 @@
     monado = {
       enable = true;
       defaultRuntime = true;
-    };
+      highPriority = true;
+      
+      package = (pkgs.monado.overrideAttrs {
+        pname = "monado-pimax"; # optional but helps distinguishing between packages
 
+        src = pkgs.fetchFromGitLab {
+          domain = "gitlab.freedesktop.org";
+          owner = "Coreforge";
+          repo = "monado";
+          rev = "c718ccdf4dc2a33448b713241b4f8fc45c07a010";
+          hash = "sha256-H2NFPLlx2e96gVpAyVkVeuNGHfQB/xyA896J2QcEVpA="; # leave empty at first and fill in whatever Nix comes up with here
+        };
+      });
+    };
   };
 
   # add japanese font that does not look like pixelart
@@ -362,7 +384,7 @@
   };
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
-
+  
   environment = {
     sessionVariables.NIXOS_OZONE_WL = "1"; # force electron apps to run on wayland
     interactiveShellInit = ''
