@@ -271,7 +271,10 @@
     };
 
   };
-  systemd.user.services."monado".environment.STEAMVR_LH_ENABLE = "true";
+  systemd.user.services."monado".environment = {
+    STEAMVR_LH_ENABLE = "true";
+    XRT_COMPOSITOR_COMPUTE = "1";
+  };
   hardware.opengl.extraPackages = [ pkgs.monado-vulkan-layers ];
 
   services = {
