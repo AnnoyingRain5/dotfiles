@@ -363,7 +363,7 @@
           owner = "Coreforge";
           repo = "monado";
           rev = "c718ccdf4dc2a33448b713241b4f8fc45c07a010";
-          hash = "sha256-H2NFPLlx2e96gVpAyVkVeuNGHfQB/xyA896J2QcEVpA="; # leave empty at first and fill in whatever Nix comes up with here
+          hash = "sha256-H2NFPLlx2e96gVpAyVkVeuNGHfQB/xyA896J2QcEVpA=";
         };
       });
     };
