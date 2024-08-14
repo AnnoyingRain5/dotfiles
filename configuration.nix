@@ -212,6 +212,7 @@
 
     # other
     firefox
+    inputs.flake-firefox-nightly.packages.${pkgs.system}.firefox-nightly-bin
     ungoogled-chromium
     thunderbird
     filezilla

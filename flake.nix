@@ -10,6 +10,7 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     nix-vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
+    flake-firefox-nightly.url = "github:nix-community/flake-firefox-nightly";
 
     flatpaks.url = "github:GermanBread/declarative-flatpak/stable";
 
@@ -17,7 +18,7 @@
     nixpkgs-xr.url = "github:nix-community/nixpkgs-xr";
   };
 
-  outputs = { self, nixpkgs, home-manager, nur, nix-vscode-extensions, nixpkgs-xr, flatpaks, nixpkgs-vkl, stardust }@inputs: {
+  outputs = { self, nixpkgs, home-manager, nur, nix-vscode-extensions, nixpkgs-xr, flatpaks, nixpkgs-vkl, stardust, flake-firefox-nightly }@inputs: {
     nixosConfigurations = {
 
       Blaze = nixpkgs.lib.nixosSystem rec {
