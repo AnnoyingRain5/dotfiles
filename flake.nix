@@ -12,7 +12,7 @@
     nix-vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
     flake-firefox-nightly.url = "github:nix-community/flake-firefox-nightly";
 
-    flatpaks.url = "github:GermanBread/declarative-flatpak/stable";
+    flatpaks.url = "github:GermanBread/declarative-flatpak/stable-v3";
 
     stardust.url = "github:StardustXR/server";
     nixpkgs-xr.url = "github:nix-community/nixpkgs-xr";
