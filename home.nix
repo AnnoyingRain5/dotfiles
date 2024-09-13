@@ -21,6 +21,7 @@
           reddit-moderator-toolbox
           user-agent-string-switcher
           keepassxc-browser
+          streetpass-for-mastodon
         ];
         settings = {
           "signon.rememberSignons" = false;
