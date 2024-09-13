@@ -370,8 +370,8 @@
           domain = "gitlab.freedesktop.org";
           owner = "Coreforge";
           repo = "monado";
-          rev = "1f4af3faa7099a350e988723c504bac9ea650b61";
-          hash = "sha256-H2NFPLlx2e96gVpAyVkVeuNGHfQB/xyA896J2QcEVpA=";
+          rev = "c726eca289a2e2a353d02a08d22621c2c57b211b";
+          hash = "sha256-8ArHFbW/N5/6PINzXsj5iBshE6TFiFDiRTjMAfZIbDY=";
         };
       });
     };
