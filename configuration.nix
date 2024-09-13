@@ -125,6 +125,9 @@
     pciutils
     ffmpeg
     distrobox
+    unrar
+    freenect
+    kinect-audio-setup
 
     #shared folder for VM
     virtiofsd
@@ -201,6 +204,7 @@
     }
     )
     python3
+    hidapi
     jetbrains.pycharm-professional
     jetbrains.rider
     unityhub # installed 2022.3.6f1 using the uri: unityhub://2022.3.6f1/b9e6e7e9fa2d
@@ -289,6 +293,7 @@
     # rule 2: Nintendo Switch (RCM)
     # rule 3: G29 racing wheel
     # rule 4: pimax 5kx
+    # rule 5, 6, 7: xbox 360 kinect
     udev.extraRules = ''
       SUBSYSTEMS=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0660", TAG+="uaccess"
 
@@ -298,6 +303,9 @@
 
       ATTRS{idVendor}=="0483", ATTRS{idProduct}=="0101", TAG+="uaccess", ENV{ID_xrhardware}="1"
 
+      SUBSYSTEMS=="usb", ATTRS{idVendor}=="045e", ATTRS{idProduct}=="02b0" MODE="777", TAG+="uaccess"
+      SUBSYSTEMS=="usb", ATTRS{idVendor}=="045e", ATTRS{idProduct}=="02ad" MODE="777", TAG+="uaccess"
+      SUBSYSTEMS=="usb", ATTRS{idVendor}=="045e", ATTRS{idProduct}=="02ae" MODE="777", TAG+="uaccess"
     '';
 
     # enable Avahi, adds IPP Everywhere support for printing
@@ -362,7 +370,7 @@
           domain = "gitlab.freedesktop.org";
           owner = "Coreforge";
           repo = "monado";
-          rev = "c718ccdf4dc2a33448b713241b4f8fc45c07a010";
+          rev = "1f4af3faa7099a350e988723c504bac9ea650b61";
           hash = "sha256-H2NFPLlx2e96gVpAyVkVeuNGHfQB/xyA896J2QcEVpA=";
         };
       });
