@@ -16,7 +16,7 @@
     driSupport32Bit = true;
   };
 
-    boot.kernelPatches = [
+  boot.kernelPatches = [
     {
       name = "pimax headset support";
       patch = ../../patches/pimax.patch;
@@ -24,8 +24,12 @@
   ];
 
   # Load nvidia driver for Xorg and Wayland
-  services.xserver.videoDrivers = [ "nvidia" ];
-
+  services.xserver = {
+    videoDrivers = [ "nvidia" ];
+    xrandrHeads = [
+      { monitorConfig = ''Option "Rotate" "left"''; output = "DP-2"; }
+    ];
+  };
   hardware.nvidia = {
 
     # Modesetting is required.
@@ -57,11 +61,11 @@
   fileSystems."/mnt/4tb_lmao" = {
     device = "/dev/disk/by-uuid/daaf3ad9-8d28-4325-bd5d-420b4d01c027";
     fsType = "btrfs";
-    };
+  };
 
   fileSystems."/mnt/steam_games" = {
     device = "/dev/disk/by-uuid/0bed1270-ce40-4715-9be1-d932cdaac68b";
     fsType = "ext4";
-    };
+  };
 
 }
