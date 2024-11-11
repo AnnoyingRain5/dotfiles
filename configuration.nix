@@ -91,7 +91,7 @@
       isNormalUser = true;
       initialHashedPassword = "$y$j9T$BmeHPNCIt5arCWvzXqXNC1$JVAMf3j1FTZtD7m5Iq16qEUspVXZqKYGF835qmU7jy2";
       description = "AnnoyingRains";
-      extraGroups = [ "networkmanager" "wheel" "wireshark" ];
+      extraGroups = [ "networkmanager" "wheel" "wireshark" "docker" ];
       packages = with pkgs; [
         # using system packages instead
       ];
@@ -117,6 +117,9 @@
 
     ## command line utilities ##
     wget
+    sshfs
+    killall
+    unzip
     git
     micro
     gnupg
@@ -139,6 +142,7 @@
     ## graphical apps ##
 
     # games
+    heroic
     lutris
     prismlauncher
     r2modman
@@ -146,7 +150,9 @@
 
     # chat
     discord-canary
+    vesktop
     telegram-desktop
+    thunderbird
 
     # emulators
     dolphin-emu
@@ -207,6 +213,7 @@
     hidapi
     jetbrains.pycharm-professional
     jetbrains.rider
+    nodejs
     unityhub # installed 2022.3.6f1 using the uri: unityhub://2022.3.6f1/b9e6e7e9fa2d
 
     # VR
@@ -218,7 +225,6 @@
     firefox
     inputs.flake-firefox-nightly.packages.${pkgs.system}.firefox-nightly-bin
     ungoogled-chromium
-    thunderbird
     filezilla
     kleopatra
     keepassxc
@@ -258,6 +264,11 @@
     direnv.enable = true;
     calls.enable = true;
     wireshark.enable = true;
+    
+    appimage = {
+      enable = true;
+      binfmt = true;
+    };
 
     git = {
       enable = true;
@@ -284,7 +295,7 @@
 
   services = {
     desktopManager.plasma6.enable = true;
-    # openssh.enable = true;
+    openssh.enable = true;
     printing.enable = true;
     # required for yubiauth
     pcscd.enable = true;
@@ -370,8 +381,8 @@
           domain = "gitlab.freedesktop.org";
           owner = "Coreforge";
           repo = "monado";
-          rev = "c726eca289a2e2a353d02a08d22621c2c57b211b";
-          hash = "sha256-8ArHFbW/N5/6PINzXsj5iBshE6TFiFDiRTjMAfZIbDY=";
+          rev = "7fa0c5db24ac0bbd71ed53d6f13133dbeaf4c3cd";
+          hash = "sha256-oEAZ8JwU6w2X8gjrZh/VCe5xyCqp8zXhzXKzTA5EwOM=";
         };
       });
     };
@@ -393,6 +404,8 @@
     spiceUSBRedirection.enable = true;
     # for development and distrobox
     docker.enable = true;
+    docker.rootless.enable = true;
+    docker.rootless.setSocketVariable = true;
   };
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
