@@ -18,7 +18,8 @@
   boot = {
     # graphical decryption splash screen
     initrd.systemd.enable = true;
-    kernelParams = [ "quiet" ];
+    kernelParams = [ "quiet" "nouveau.config=NvGspRm=1" ];
+    kernelPackages = pkgs.linuxPackages_latest;
     extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
     plymouth = {
       enable = true;
@@ -209,7 +210,9 @@
       ];
     }
     )
-    python3
+    python3Full
+    libgpod
+    rhythmbox
     hidapi
     jetbrains.pycharm-professional
     jetbrains.rider
@@ -299,6 +302,7 @@
     printing.enable = true;
     # required for yubiauth
     pcscd.enable = true;
+    tailscale.enable = true;
 
     # rule 1: 3d printer (?)
     # rule 2: Nintendo Switch (RCM)
