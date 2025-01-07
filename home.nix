@@ -11,7 +11,7 @@
     programs.firefox = {
       enable = true;
       profiles.annoyingrains = {
-        extensions = with config.nur.repos.rycee.firefox-addons; [
+        extensions = with pkgs.nur.repos.rycee.firefox-addons; [
           ublock-origin
           dearrow
           sponsorblock

@@ -10,9 +10,9 @@
   imports = [ ./home.nix ];
 
   nixpkgs.overlays = [
-    (self: super: {
-      monado-vulkan-layers = nixpkgs-vkl.monado-vulkan-layers;
-    })
+    #(self: super: {
+    #  monado-vulkan-layers = nixpkgs-vkl.monado-vulkan-layers;
+    #})
   ];
 
   boot = {
@@ -84,6 +84,7 @@
   # Enable sound with pipewire.
   hardware.pulseaudio.enable = false;
   hardware.new-lg4ff.enable = true;
+  hardware.flipperzero.enable = true;
   security.rtkit.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
@@ -92,7 +93,7 @@
       isNormalUser = true;
       initialHashedPassword = "$y$j9T$BmeHPNCIt5arCWvzXqXNC1$JVAMf3j1FTZtD7m5Iq16qEUspVXZqKYGF835qmU7jy2";
       description = "AnnoyingRains";
-      extraGroups = [ "networkmanager" "wheel" "wireshark" "docker" ];
+      extraGroups = [ "networkmanager" "wheel" "wireshark" "docker" "adbusers" ];
       packages = with pkgs; [
         # using system packages instead
       ];
@@ -132,6 +133,7 @@
     unrar
     freenect
     kinect-audio-setup
+    android-tools
 
     #shared folder for VM
     virtiofsd
@@ -167,7 +169,7 @@
     plasma-vault
     cryfs # needed for plasma-vault re: https://github.com/NixOS/nixpkgs/issues/273046
     kcalc
-    k3b
+    #k3b - broken?
     ktorrent
 
     # windows compatability - wine and proton stuff
@@ -187,7 +189,7 @@
     (vscode-with-extensions.override {
       vscodeExtensions = with inputs.nix-vscode-extensions.extensions.x86_64-linux.vscode-marketplace; [
         ms-vsliveshare.vsliveshare
-        ms-dotnettools.csharp
+        #ms-dotnettools.csharp
         njpwerner.autodocstring
         samuelcolvin.jinjahtml
         ms-python.black-formatter
@@ -210,7 +212,10 @@
       ];
     }
     )
-    python3Full
+    (pkgs.python3.withPackages (ppkgs: [
+      ppkgs.tkinter
+      ppkgs.requests
+    ]))
     libgpod
     rhythmbox
     hidapi
@@ -222,7 +227,7 @@
     # VR
     wlx-overlay-s
     opencomposite
-    beatsabermodmanager
+    #beatsabermodmanager
 
     # other
     firefox
@@ -231,9 +236,13 @@
     filezilla
     kleopatra
     keepassxc
+    qflipper
+    mitmproxy
+    prusa-slicer
     feishin
     mangohud
     vlc
+    fx_cast_bridge
     wireshark
     obs-studio
     #cura https://github.com/NixOS/nixpkgs/issues/186570
@@ -241,9 +250,9 @@
     yubioath-flutter
 
     # development (Crank It Up)
-    dotnetCorePackages.sdk_6_0
+    #dotnetCorePackages.sdk_6_0
     xorg.libXi
-    dotnet-runtime
+    #dotnet-runtime
     libglvnd
     udev
 
@@ -267,7 +276,8 @@
     direnv.enable = true;
     calls.enable = true;
     wireshark.enable = true;
-    
+    adb.enable = true;
+
     appimage = {
       enable = true;
       binfmt = true;
@@ -294,7 +304,6 @@
     STEAMVR_LH_ENABLE = "true";
     XRT_COMPOSITOR_COMPUTE = "1";
   };
-  hardware.opengl.extraPackages = [ pkgs.monado-vulkan-layers ];
 
   services = {
     desktopManager.plasma6.enable = true;
@@ -377,7 +386,7 @@
       enable = true;
       defaultRuntime = true;
       highPriority = true;
-      
+
       package = (pkgs.monado.overrideAttrs {
         pname = "monado-pimax"; # optional but helps distinguishing between packages
 
@@ -385,16 +394,18 @@
           domain = "gitlab.freedesktop.org";
           owner = "Coreforge";
           repo = "monado";
-          rev = "7fa0c5db24ac0bbd71ed53d6f13133dbeaf4c3cd";
-          hash = "sha256-oEAZ8JwU6w2X8gjrZh/VCe5xyCqp8zXhzXKzTA5EwOM=";
+          rev = "ff4fd7e5d1c595197a9d5138091d3937fbd9c944";
+          hash = "sha256-M6Kq0S1luh7kfPaBZjJMcwHd51ZJpfV7Lhkz90bOF0U=";
         };
       });
     };
   };
 
-  # add japanese font that does not look like pixelart
+  fonts.enableDefaultPackages = true;
   fonts.packages = with pkgs; [
     ipafont
+    corefonts
+    vistafonts
     (import
       (builtins.fetchTarball {
         url = "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v2.tar.gz";
@@ -413,7 +424,7 @@
   };
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
-  
+
   environment = {
     sessionVariables.NIXOS_OZONE_WL = "1"; # force electron apps to run on wayland
     interactiveShellInit = ''

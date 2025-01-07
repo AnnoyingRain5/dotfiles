@@ -2,7 +2,6 @@
   description = "System flake";
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
-    nixpkgs-vkl.url = "github:Scrumplex/nixpkgs/nixos/monado/vulkan-layers";
     nur.url = "github:nix-community/NUR";
     #nur.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -18,23 +17,18 @@
     nixpkgs-xr.url = "github:nix-community/nixpkgs-xr";
   };
 
-  outputs = { self, nixpkgs, home-manager, nur, nix-vscode-extensions, nixpkgs-xr, flatpaks, nixpkgs-vkl, stardust, flake-firefox-nightly }@inputs: {
+  outputs = { self, nixpkgs, home-manager, nur, nix-vscode-extensions, nixpkgs-xr, flatpaks, stardust, flake-firefox-nightly }@inputs: {
     nixosConfigurations = {
 
       Blaze = nixpkgs.lib.nixosSystem rec {
         system = "x86_64-linux";
         specialArgs = {
           inherit inputs;
-
-          nixpkgs-vkl = import nixpkgs-vkl {
-            inherit system;
-            config.allowUnfree = true;
-          };
         };
         modules = [
           ./hosts/Blaze/configuration.nix
-          nur.nixosModules.nur
-          flatpaks.nixosModules.default
+          nur.modules.nixos.default
+          flatpaks.nixosModules.declarative-flatpak
           home-manager.nixosModules.home-manager
           {
             home-manager.useGlobalPkgs = true;
@@ -47,10 +41,6 @@
         system = "x86_64-linux";
         specialArgs = {
           inherit inputs;
-          nixpkgs-vkl = import nixpkgs-vkl {
-            inherit system;
-            config.allowUnfree = true;
-          };
           stardust = import stardust {
             inherit system;
             config.allowUnfree = true;
@@ -58,8 +48,8 @@
         };
         modules = [
           ./hosts/Dragon/configuration.nix
-          nur.nixosModules.nur
-          flatpaks.nixosModules.default
+          nur.modules.nixos.default
+          flatpaks.nixosModules.declarative-flatpak
           nixpkgs-xr.nixosModules.nixpkgs-xr
           home-manager.nixosModules.home-manager
           {
