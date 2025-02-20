@@ -21,6 +21,8 @@
     kernelParams = [ "quiet" "nouveau.config=NvGspRm=1" ];
     kernelPackages = pkgs.linuxPackages_latest;
     extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
+    # don't actually need to boot from nfs, https://github.com/NixOS/nixpkgs/issues/76671
+    supportedFilesystems = [ "nfs" ];
     plymouth = {
       enable = true;
       theme = "breeze";
@@ -64,6 +66,8 @@
   i18n = {
     defaultLocale = "en_AU.UTF-8";
     extraLocaleSettings.LC_ALL = "en_AU.UTF-8";
+    extraLocaleSettings.LC_CTYPE = "en_AU.UTF-8";
+    extraLocaleSettings.LC_COLLATE = "en_AU.UTF-8";
     inputMethod = {
       enabled = "fcitx5";
       fcitx5 = {
@@ -134,6 +138,7 @@
     freenect
     kinect-audio-setup
     android-tools
+    nfs-utils
 
     #shared folder for VM
     virtiofsd
@@ -216,6 +221,11 @@
       ppkgs.tkinter
       ppkgs.requests
     ]))
+
+    (pkgs.openssh.override { # Yes, this is so I can ssh into an apple TV. Don't ask.
+      dsaKeysSupport = true;
+    })
+
     libgpod
     rhythmbox
     hidapi
@@ -277,7 +287,7 @@
     calls.enable = true;
     wireshark.enable = true;
     adb.enable = true;
-
+    nix-ld.enable = true;
     appimage = {
       enable = true;
       binfmt = true;
@@ -291,6 +301,11 @@
         commit.gpgsign = true;
         user.signingkey = "F42DAC9E42C738BC";
       };
+    };
+
+    java = {
+      enable = true;
+      package = (pkgs.jdk.override { enableJavaFX = true; });
     };
 
     gnupg.agent = {
@@ -312,6 +327,7 @@
     # required for yubiauth
     pcscd.enable = true;
     tailscale.enable = true;
+    rpcbind.enable = true;
 
     # rule 1: 3d printer (?)
     # rule 2: Nintendo Switch (RCM)
@@ -374,8 +390,25 @@
       alsa.enable = true;
       alsa.support32Bit = true;
       pulse.enable = true;
+      raopOpenFirewall = true;
+      extraConfig.pipewire = {
+        "10-airplay" = {
+          "context.modules" = [
+            {
+              name = "libpipewire-module-raop-discover";
+
+              # increase the buffer size if you get dropouts/glitches
+              args = {
+                roap.discover-local = true; # docs are unclear which is correct, seems to work fine tho so... eh
+                raop.discover-local = true;
+                raop.latency.ms = 500;
+              };
+            }
+          ];
+        };
+      };
       # If you want to use JACK applications, uncomment this
-      #jack.enable = true;
+      jack.enable = true;
 
       # use the example session manager (no others are packaged yet so this is enabled by default,
       # no need to redefine it in your config for now)
@@ -406,6 +439,7 @@
     ipafont
     corefonts
     vistafonts
+    unifont
     (import
       (builtins.fetchTarball {
         url = "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v2.tar.gz";
