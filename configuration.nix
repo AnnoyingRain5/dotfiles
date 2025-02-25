@@ -85,7 +85,7 @@
       elisa # do not install Elisa
     ];
 
-  # Enable sound with pipewire.
+  #services.pulseaudio.enable = false;
   hardware.pulseaudio.enable = false;
   hardware.new-lg4ff.enable = true;
   hardware.flipperzero.enable = true;
@@ -222,7 +222,8 @@
       ppkgs.requests
     ]))
 
-    (pkgs.openssh.override { # Yes, this is so I can ssh into an apple TV. Don't ask.
+    (pkgs.openssh.override {
+      # Yes, this is so I can ssh into an apple TV. Don't ask.
       dsaKeysSupport = true;
     })
 
@@ -236,6 +237,7 @@
 
     # VR
     wlx-overlay-s
+    wayvr-dashboard
     opencomposite
     #beatsabermodmanager
 
@@ -318,6 +320,7 @@
   systemd.user.services."monado".environment = {
     STEAMVR_LH_ENABLE = "true";
     XRT_COMPOSITOR_COMPUTE = "1";
+    XRT_COMPOSITOR_SCALE_PERCENTAGE = "110";
   };
 
   services = {
@@ -387,6 +390,7 @@
 
     pipewire = {
       enable = true;
+      #wireplumber.enable = true;
       alsa.enable = true;
       alsa.support32Bit = true;
       pulse.enable = true;
@@ -409,10 +413,6 @@
       };
       # If you want to use JACK applications, uncomment this
       jack.enable = true;
-
-      # use the example session manager (no others are packaged yet so this is enabled by default,
-      # no need to redefine it in your config for now)
-      #media-session.enable = true;
     };
 
     monado = {
@@ -427,8 +427,8 @@
           domain = "gitlab.freedesktop.org";
           owner = "Coreforge";
           repo = "monado";
-          rev = "ff4fd7e5d1c595197a9d5138091d3937fbd9c944";
-          hash = "sha256-M6Kq0S1luh7kfPaBZjJMcwHd51ZJpfV7Lhkz90bOF0U=";
+          rev = "f858ee5dd8ca7696bd9219e8278f2671df56fe6e";
+          hash = "sha256-Si56yvG+oSfyUaPAlF1FgB7WJo8td1xuVxYnkJvbu4o=";
         };
       });
     };

@@ -16,10 +16,9 @@
   ### Nvidia ###
 
   # Enable OpenGL
-  hardware.opengl = {
+  hardware.graphics = {
     enable = true;
-    #driSupport = true;
-    driSupport32Bit = true;
+    enable32Bit = true;
   };
 
   boot.kernelPatches = [
@@ -61,11 +60,12 @@
     nvidiaSettings = true;
 
     # Optionally, you may need to select the appropriate driver version for your specific GPU.
-    package = config.boot.kernelPackages.nvidiaPackages.latest;
+    package = config.boot.kernelPackages.nvidiaPackages.beta;
   };
-
-  fileSystems."/mnt/4tb_lmao" = {
-    device = "/dev/disk/by-uuid/daaf3ad9-8d28-4325-bd5d-420b4d01c027";
+  
+  boot.initrd.luks.devices."luks-3eab74ab-9972-4ce0-b854-f9c4ad696d77".device = "/dev/disk/by-uuid/3eab74ab-9972-4ce0-b854-f9c4ad696d77";
+  fileSystems."/mnt/hdd" = {
+    device = "/dev/disk/by-uuid/b1f7185c-46d1-46f3-aae2-e89bd9c9ed83";
     fsType = "btrfs";
   };
 
