@@ -139,6 +139,7 @@
     kinect-audio-setup
     android-tools
     nfs-utils
+    lighthouse-steamvr
 
     #shared folder for VM
     virtiofsd
@@ -155,6 +156,7 @@
     prismlauncher
     r2modman
     osu-lazer-bin
+    bs-manager
 
     # chat
     discord-canary
@@ -170,12 +172,12 @@
     cemu
 
     # kde apps that should be installed by default
-    kate
-    plasma-vault
+    kdePackages.kate
+    kdePackages.plasma-vault
     cryfs # needed for plasma-vault re: https://github.com/NixOS/nixpkgs/issues/273046
-    kcalc
+    kdePackages.kcalc
     #k3b - broken?
-    ktorrent
+    kdePackages.ktorrent
 
     # windows compatability - wine and proton stuff
     wineWowPackages.stable
@@ -209,7 +211,7 @@
         # ms-dotnettools.vscodeintellicode-csharp # also broken ):
         wholroyd.jinja
         yandeu.five-server
-        ms-python.vscode-pylance
+        #ms-python.vscode-pylance
         ms-python.python
         ms-python.debugpy
         qwtel.sqlite-viewer
@@ -246,7 +248,7 @@
     inputs.flake-firefox-nightly.packages.${pkgs.system}.firefox-nightly-bin
     ungoogled-chromium
     filezilla
-    kleopatra
+    kdePackages.kleopatra
     keepassxc
     qflipper
     mitmproxy

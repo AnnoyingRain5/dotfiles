@@ -58,6 +58,22 @@
         categories = [ "Application" ];
         mimeType = [ ];
       };
+      start-monado = {
+        name = "Start Monado";
+        genericName = "VR Compositor";
+        exec = "systemctl --user start monado";
+        terminal = false;
+        categories = [ "Application" ];
+        mimeType = [ ];
+      };
+      stop-monado = {
+        name = "Stop Monado";
+        genericName = "VR Compositor";
+        exec = "systemctl --user stop monado";
+        terminal = false;
+        categories = [ "Application" ];
+        mimeType = [ ];
+      };
     };
 
     xdg.configFile."openxr/1/active_runtime.json".text = ''
