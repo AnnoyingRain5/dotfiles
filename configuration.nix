@@ -19,6 +19,7 @@
     # graphical decryption splash screen
     initrd.systemd.enable = true;
     kernelParams = [ "quiet" "nouveau.config=NvGspRm=1" ];
+    kernel.sysctl."kernel.sysrq" = 502; # REISUB
     kernelPackages = pkgs.linuxPackages_latest;
     extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
     # don't actually need to boot from nfs, https://github.com/NixOS/nixpkgs/issues/76671
@@ -123,6 +124,7 @@
 
     ## command line utilities ##
     wget
+    nixfmt
     sshfs
     killall
     unzip
@@ -240,11 +242,24 @@
     # VR
     wlx-overlay-s
     wayvr-dashboard
-    opencomposite
-    #beatsabermodmanager
+    (opencomposite.overrideAttrs (oldAttrs: {
+      pname = "opencomposite";
+        src = pkgs.fetchFromGitLab {
+          domain = "gitlab.com";
+          owner = "peelz";
+          repo = "OpenOVR";
+          rev = "0ef5dd023fb196bace7c6edc8588b2dedb113da0";
+          hash = "sha256-WG+51mX5gK/yyUikzXT19H/UVk294QD6HgM9zJNC2b0=";
+          fetchSubmodules = true;
+        };
+        buildInputs = oldAttrs.buildInputs ++ [ pkgs.automake pkgs.autoconf pkgs.libtool ];
+        leaveDotGit = true;
+    })
+    )
 
     # other
     firefox
+    gimp
     inputs.flake-firefox-nightly.packages.${pkgs.system}.firefox-nightly-bin
     ungoogled-chromium
     filezilla

@@ -86,7 +86,19 @@
       }
     '';
 
-    xdg.configFile."openvr/openvrpaths.vrpath".text = ''
+    xdg.configFile."openvr/openvrpaths.vrpath".text = let
+      opencomposite = pkgs.opencomposite.overrideAttrs (finalAttrs: previousAttrs: {
+        src = pkgs.fetchFromGitLab {
+          domain = "gitlab.com";
+          owner = "peelz";
+          repo = "OpenOVR";
+          rev = "0ef5dd023fb196bace7c6edc8588b2dedb113da0";
+          hash = "sha256-WG+51mX5gK/yyUikzXT19H/UVk294QD6HgM9zJNC2b0=";
+          fetchSubmodules = true;
+        };
+        buildInputs = previousAttrs.buildInputs ++ [pkgs.autoconf pkgs.automake pkgs.libtool];
+      });
+    in ''
       {
         "config" :
         [
@@ -100,11 +112,10 @@
         ],
         "runtime" :
         [
-          "${pkgs.opencomposite}/lib/opencomposite"
+          "${opencomposite}/lib/opencomposite"
         ],
         "version" : 1
       }
     '';
-
   };
 }
