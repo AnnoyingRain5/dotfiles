@@ -221,10 +221,13 @@
       ];
     }
     )
-    (pkgs.python3.withPackages (ppkgs: [
+    (pkgs.python3Full.withPackages (ppkgs: [
       ppkgs.tkinter
       ppkgs.requests
+      ppkgs.pyusb
+      ppkgs.tqdm
     ]))
+    libusb1
 
     (pkgs.openssh.override {
       # Yes, this is so I can ssh into an apple TV. Don't ask.
