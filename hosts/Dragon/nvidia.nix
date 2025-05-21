@@ -7,6 +7,7 @@
 }:
 
 {
+  ### only enable hardware.nvidia on the default specialisation, to allow the nouveau specialisation to exist ###
   config = lib.mkIf (config.specialisation != { }) {
     # Load nvidia driver for Xorg and Wayland
     services.xserver = {
