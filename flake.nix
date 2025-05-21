@@ -17,47 +17,59 @@
     nixpkgs-xr.url = "github:nix-community/nixpkgs-xr";
   };
 
-  outputs = { self, nixpkgs, home-manager, nur, nix-vscode-extensions, nixpkgs-xr, flatpaks, stardust, flake-firefox-nightly }@inputs: {
-    nixosConfigurations = {
+  outputs =
+    {
+      self,
+      nixpkgs,
+      home-manager,
+      nur,
+      nix-vscode-extensions,
+      nixpkgs-xr,
+      flatpaks,
+      stardust,
+      flake-firefox-nightly,
+    }@inputs:
+    {
+      nixosConfigurations = {
 
-      Blaze = nixpkgs.lib.nixosSystem rec {
-        system = "x86_64-linux";
-        specialArgs = {
-          inherit inputs;
-        };
-        modules = [
-          ./hosts/Blaze/configuration.nix
-          nur.modules.nixos.default
-          flatpaks.nixosModules.declarative-flatpak
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.extraSpecialArgs = { inherit inputs; };
-          }
-        ];
-      };
-
-      Dragon = nixpkgs.lib.nixosSystem rec {
-        system = "x86_64-linux";
-        specialArgs = {
-          inherit inputs;
-          stardust = import stardust {
-            inherit system;
-            config.allowUnfree = true;
+        Blaze = nixpkgs.lib.nixosSystem rec {
+          system = "x86_64-linux";
+          specialArgs = {
+            inherit inputs;
           };
+          modules = [
+            ./hosts/Blaze/configuration.nix
+            nur.modules.nixos.default
+            flatpaks.nixosModules.declarative-flatpak
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.extraSpecialArgs = { inherit inputs; };
+            }
+          ];
         };
-        modules = [
-          ./hosts/Dragon/configuration.nix
-          nur.modules.nixos.default
-          flatpaks.nixosModules.declarative-flatpak
-          nixpkgs-xr.nixosModules.nixpkgs-xr
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.extraSpecialArgs = { inherit inputs; };
-          }
-        ];
+
+        Dragon = nixpkgs.lib.nixosSystem rec {
+          system = "x86_64-linux";
+          specialArgs = {
+            inherit inputs;
+            stardust = import stardust {
+              inherit system;
+              config.allowUnfree = true;
+            };
+          };
+          modules = [
+            ./hosts/Dragon/configuration.nix
+            nur.modules.nixos.default
+            flatpaks.nixosModules.declarative-flatpak
+            nixpkgs-xr.nixosModules.nixpkgs-xr
+            home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.extraSpecialArgs = { inherit inputs; };
+            }
+          ];
+        };
       };
     };
-  };
 }
