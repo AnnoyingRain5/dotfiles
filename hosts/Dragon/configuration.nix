@@ -54,27 +54,6 @@
     };
   };
 
-  #specialisation = {
-  #  nvk.configuration = {
-  #    services.xserver.videoDrivers = [ "nouveau" "modesetting" "fbdev" ];
-  #    boot.kernelParams = [
-  #      "nouveau.config=NvGspRm=1"
-  #      "module_blacklist=nvidia"
-  #    ];
-  #  };
-  #};
-
-  boot.initrd.luks.devices."luks-3eab74ab-9972-4ce0-b854-f9c4ad696d77".device =
-    "/dev/disk/by-uuid/3eab74ab-9972-4ce0-b854-f9c4ad696d77";
-  fileSystems."/mnt/hdd" = {
-    device = "/dev/disk/by-uuid/b1f7185c-46d1-46f3-aae2-e89bd9c9ed83";
-    fsType = "btrfs";
-  };
-
-  #fileSystems."/mnt/steam_games" = {
-  #  device = "/dev/disk/by-uuid/0bed1270-ce40-4715-9be1-d932cdaac68b";
-  #  fsType = "ext4";
-  #};
 
   security.pki.certificates = [
     ''

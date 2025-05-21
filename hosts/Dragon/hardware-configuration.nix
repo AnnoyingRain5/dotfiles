@@ -8,7 +8,6 @@
   modulesPath,
   ...
 }:
-
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
@@ -42,6 +41,14 @@
     ];
   };
 
+  fileSystems."/mnt/hdd" = {
+    device = "/dev/disk/by-uuid/b1f7185c-46d1-46f3-aae2-e89bd9c9ed83";
+    fsType = "btrfs";
+  };
+
+  boot.initrd.luks.devices."luks-3eab74ab-9972-4ce0-b854-f9c4ad696d77".device =
+    "/dev/disk/by-uuid/3eab74ab-9972-4ce0-b854-f9c4ad696d77";
+
   swapDevices = [
     {
       device = "/swapfile";
@@ -57,6 +64,7 @@
   # networking.interfaces.docker0.useDHCP = lib.mkDefault true;
   # networking.interfaces.enp34s0.useDHCP = lib.mkDefault true;
   # networking.interfaces.tailscale0.useDHCP = lib.mkDefault true;
+  # networking.interfaces.virbr0.useDHCP = lib.mkDefault true;
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
