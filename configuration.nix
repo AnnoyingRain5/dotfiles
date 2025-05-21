@@ -80,15 +80,13 @@
     extraLocaleSettings.LC_ALL = "en_AU.UTF-8";
     extraLocaleSettings.LC_CTYPE = "en_AU.UTF-8";
     extraLocaleSettings.LC_COLLATE = "en_AU.UTF-8";
-    inputMethod = {
-      enabled = "fcitx5";
-      fcitx5 = {
-        waylandFrontend = true;
-        addons = with pkgs; [
-          fcitx5-mozc
-          fcitx5-gtk
-        ];
-      };
+    inputMethod.type.fcitx5 = {
+      enabled = true;
+      waylandFrontend = true;
+      addons = with pkgs; [
+        fcitx5-mozc
+        fcitx5-gtk
+      ];
     };
   };
 
