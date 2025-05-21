@@ -4,7 +4,15 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, lib, inputs, nixpkgs-vkl, stardust, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  nixpkgs-vkl,
+  stardust,
+  ...
+}:
 
 {
   imports = [ ./home.nix ];
@@ -18,7 +26,10 @@
   boot = {
     # graphical decryption splash screen
     initrd.systemd.enable = true;
-    kernelParams = [ "quiet" "nouveau.config=NvGspRm=1" ];
+    kernelParams = [
+      "quiet"
+      "nouveau.config=NvGspRm=1"
+    ];
     kernel.sysctl."kernel.sysrq" = 502; # REISUB
     kernelPackages = pkgs.linuxPackages_latest;
     extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
@@ -73,18 +84,20 @@
       enabled = "fcitx5";
       fcitx5 = {
         waylandFrontend = true;
-        addons = with pkgs; [ fcitx5-mozc fcitx5-gtk ];
+        addons = with pkgs; [
+          fcitx5-mozc
+          fcitx5-gtk
+        ];
       };
     };
   };
 
-  environment.plasma6.excludePackages = with pkgs.libsForQt5;
-    [
-      elisa # do not install Elisa
-    ];
+  environment.plasma6.excludePackages = with pkgs.libsForQt5; [
+    elisa # do not install Elisa
+  ];
 
-  #services.pulseaudio.enable = false;
-  hardware.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
+  #hardware.pulseaudio.enable = false;
   hardware.new-lg4ff.enable = true;
   hardware.flipperzero.enable = true;
   security.rtkit.enable = true;
@@ -93,31 +106,35 @@
   users.users = {
     annoyingrains = {
       isNormalUser = true;
-      initialHashedPassword =
-        "$y$j9T$BmeHPNCIt5arCWvzXqXNC1$JVAMf3j1FTZtD7m5Iq16qEUspVXZqKYGF835qmU7jy2";
+      initialHashedPassword = "$y$j9T$BmeHPNCIt5arCWvzXqXNC1$JVAMf3j1FTZtD7m5Iq16qEUspVXZqKYGF835qmU7jy2";
       description = "AnnoyingRains";
-      extraGroups =
-        [ "networkmanager" "wheel" "wireshark" "docker" "adbusers" ];
-      packages = with pkgs;
-        [
-          # using system packages instead
-        ];
+      extraGroups = [
+        "networkmanager"
+        "wheel"
+        "wireshark"
+        "docker"
+        "adbusers"
+      ];
+      packages = with pkgs; [
+        # using system packages instead
+      ];
     };
     luca = {
       isNormalUser = true;
-      initialHashedPassword =
-        "$y$j9T$BmeHPNCIt5arCWvzXqXNC1$JVAMf3j1FTZtD7m5Iq16qEUspVXZqKYGF835qmU7jy2";
+      initialHashedPassword = "$y$j9T$BmeHPNCIt5arCWvzXqXNC1$JVAMf3j1FTZtD7m5Iq16qEUspVXZqKYGF835qmU7jy2";
       description = "Luca Tails";
       extraGroups = [ "networkmanager" ];
-      packages = with pkgs;
-        [
-          # using home-manager
-        ];
+      packages = with pkgs; [
+        # using home-manager
+      ];
     };
   };
 
   # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config = {
+    allowUnfree = true;
+    permittedInsecurePackages = [ "electron-33.4.11" ];
+  };
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -126,7 +143,7 @@
 
     ## command line utilities ##
     wget
-    nixfmt
+    nixfmt-rfc-style
     sshfs
     killall
     unzip
@@ -198,39 +215,43 @@
 
     # programming
     (vscode-with-extensions.override {
-      vscodeExtensions =
-        with inputs.nix-vscode-extensions.extensions.x86_64-linux.vscode-marketplace; [
-          ms-vsliveshare.vsliveshare
-          #ms-dotnettools.csharp
-          njpwerner.autodocstring
-          samuelcolvin.jinjahtml
-          ms-python.black-formatter
-          jongrant.csharpsortusings
-          csharpier.csharpier-vscode
-          ms-azuretools.vscode-docker
-          tamasfe.even-better-toml
-          github.vscode-github-actions
-          visualstudioexptteam.vscodeintellicode
-          visualstudioexptteam.intellicode-api-usage-examples
-          # ms-dotnettools.csdevkit # this seems to be broken?
-          # ms-dotnettools.vscodeintellicode-csharp # also broken ):
-          wholroyd.jinja
-          yandeu.five-server
-          #ms-python.vscode-pylance
-          ms-python.python
-          ms-python.debugpy
-          qwtel.sqlite-viewer
-          jnoortheen.nix-ide
-        ];
+      vscodeExtensions = with inputs.nix-vscode-extensions.extensions.x86_64-linux.vscode-marketplace; [
+        ms-vsliveshare.vsliveshare
+        #ms-dotnettools.csharp
+        njpwerner.autodocstring
+        samuelcolvin.jinjahtml
+        ms-python.black-formatter
+        jongrant.csharpsortusings
+        csharpier.csharpier-vscode
+        ms-azuretools.vscode-docker
+        tamasfe.even-better-toml
+        github.vscode-github-actions
+        visualstudioexptteam.vscodeintellicode
+        visualstudioexptteam.intellicode-api-usage-examples
+        # ms-dotnettools.csdevkit # this seems to be broken?
+        # ms-dotnettools.vscodeintellicode-csharp # also broken ):
+        wholroyd.jinja
+        yandeu.five-server
+        #ms-python.vscode-pylance
+        ms-python.python
+        ms-python.debugpy
+        qwtel.sqlite-viewer
+        jnoortheen.nix-ide
+      ];
     })
-    (pkgs.python3Full.withPackages
-      (ppkgs: [ ppkgs.tkinter ppkgs.requests ppkgs.pyusb ppkgs.tqdm ]))
+    (pkgs.python3Full.withPackages (ppkgs: [
+      ppkgs.tkinter
+      ppkgs.requests
+      ppkgs.pyusb
+      ppkgs.tqdm
+    ]))
     libusb1
 
-    (pkgs.openssh.override {
-      # Yes, this is so I can ssh into an apple TV. Don't ask.
-      dsaKeysSupport = true;
-    })
+    # So I can SSH into an old Apple TV, I wish I was joking
+    (pkgs.openssh.overrideAttrs (oldAttrs: {
+      # Add the configure flag that previously enabled DSA.
+      configureFlags = (oldAttrs.configureFlags or [ ]) ++ [ "--enable-dsa-keys" ];
+    }))
 
     libgpod
     rhythmbox
@@ -260,10 +281,9 @@
     #)
 
     # other
-    firefox
-    gimp
-    inputs.flake-firefox-nightly.packages.${pkgs.system}.firefox-nightly-bin
+    gimp3
     ungoogled-chromium
+    firefoxpwa
     filezilla
     kdePackages.kleopatra
     keepassxc
@@ -288,12 +308,13 @@
     udev
 
     (import (builtins.fetchTarball {
-      url =
-        "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v2.tar.gz";
+      url = "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v2.tar.gz";
       sha256 = "sha256:0g08rc92q9n5vvnr2w51alr1z38nf12c23frzjag25xf3g4qw6p4";
     }) { inherit pkgs; }).discord-krisp-patcher
   ];
-  xdg.portal = { enable = true; };
+  xdg.portal = {
+    enable = true;
+  };
 
   programs = {
     steam.enable = true;
@@ -306,6 +327,13 @@
     wireshark.enable = true;
     adb.enable = true;
     nix-ld.enable = true;
+
+    firefox = {
+      enable = true;
+      package = inputs.flake-firefox-nightly.packages.${pkgs.system}.firefox-nightly-bin;
+      nativeMessagingHosts.packages = [ pkgs.firefoxpwa ];
+    };
+
     appimage = {
       enable = true;
       binfmt = true;
@@ -420,17 +448,18 @@
       raopOpenFirewall = true;
       extraConfig.pipewire = {
         "10-airplay" = {
-          "context.modules" = [{
-            name = "libpipewire-module-raop-discover";
+          "context.modules" = [
+            {
+              name = "libpipewire-module-raop-discover";
 
-            # increase the buffer size if you get dropouts/glitches
-            args = {
-              roap.discover-local =
-                true; # docs are unclear which is correct, seems to work fine tho so... eh
-              raop.discover-local = true;
-              raop.latency.ms = 500;
-            };
-          }];
+              # increase the buffer size if you get dropouts/glitches
+              args = {
+                roap.discover-local = true; # docs are unclear which is correct, seems to work fine tho so... eh
+                raop.discover-local = true;
+                raop.latency.ms = 500;
+              };
+            }
+          ];
         };
       };
       # If you want to use JACK applications, uncomment this
@@ -442,33 +471,36 @@
       defaultRuntime = true;
       highPriority = true;
 
-      package = (pkgs.monado.overrideAttrs {
-        pname =
-          "monado-pimax"; # optional but helps distinguishing between packages
+      package = (
+        pkgs.monado.overrideAttrs {
+          pname = "monado-pimax"; # optional but helps distinguishing between packages
 
-        src = pkgs.fetchFromGitLab {
-          domain = "gitlab.freedesktop.org";
-          owner = "Coreforge";
-          repo = "monado";
-          rev = "b4e9d9ac79a82738600a44363349b89b79e889c9";
-          hash = "sha256-Me7abD8UQHPxot6AKMzNAOUKXwYdZ43QBaXhLcPYBgc=";
-        };
-      });
+          src = pkgs.fetchFromGitLab {
+            domain = "gitlab.freedesktop.org";
+            owner = "Coreforge";
+            repo = "monado";
+            rev = "b4e9d9ac79a82738600a44363349b89b79e889c9";
+            hash = "sha256-Me7abD8UQHPxot6AKMzNAOUKXwYdZ43QBaXhLcPYBgc=";
+          };
+        }
+      );
     };
   };
 
-  fonts.enableDefaultPackages = true;
-  fonts.packages = with pkgs; [
-    ipafont
-    corefonts
-    vistafonts
-    unifont
-    (import (builtins.fetchTarball {
-      url =
-        "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v2.tar.gz";
-      sha256 = "sha256:0g08rc92q9n5vvnr2w51alr1z38nf12c23frzjag25xf3g4qw6p4";
-    }) { inherit pkgs; }).avali-scratch
-  ];
+  fonts = {
+    enableDefaultPackages = true;
+    fontconfig.useEmbeddedBitmaps = true; # this is actually stupid - https://wiki.nixos.org/wiki/Fonts#Noto_Color_Emoji_doesn't_render_on_Firefox
+    packages = with pkgs; [
+      ipafont
+      corefonts
+      vistafonts
+      unifont
+      (import (builtins.fetchTarball {
+        url = "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v2.tar.gz";
+        sha256 = "sha256:0g08rc92q9n5vvnr2w51alr1z38nf12c23frzjag25xf3g4qw6p4";
+      }) { inherit pkgs; }).avali-scratch
+    ];
+  };
 
   virtualisation = {
     libvirtd.enable = true;
@@ -479,7 +511,10 @@
     docker.rootless.setSocketVariable = true;
   };
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
   environment = {
     # force electron apps to run on wayland
