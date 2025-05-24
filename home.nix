@@ -11,7 +11,7 @@
   # do something with home-manager here, for instance:
   imports = [ inputs.home-manager.nixosModules.home-manager ];
 
-  home-manager.backupFileExtension = ".home-manager.bak";
+  home-manager.backupFileExtension = "home-manager-bak";
   home-manager.users.annoyingrains = {
     # The home.stateVersion option does not have a default and must be set
     home.stateVersion = "23.11";
@@ -19,6 +19,7 @@
 
     programs.firefox = {
       enable = true;
+      package = inputs.flake-firefox-nightly.packages.${pkgs.system}.firefox-nightly-bin;
       profiles.annoyingrains = {
         extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
           ublock-origin
