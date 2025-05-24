@@ -280,6 +280,7 @@
 
     # other
     gimp3
+    godot
     ungoogled-chromium
     firefoxpwa
     filezilla
@@ -315,7 +316,18 @@
   };
 
   programs = {
-    steam.enable = true;
+    steam = {
+      enable = true;
+      extraCompatPackages = [
+        pkgs.proton-ge-bin
+        pkgs.steam-play-none
+        pkgs.proton-ge-rtsp-bin
+      ];
+      gamescopeSession = {
+        enable = true;
+        args = ["-O DP-1"];
+      };
+    };
     partition-manager.enable = true;
     kdeconnect.enable = true;
     virt-manager.enable = true;
