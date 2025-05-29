@@ -41,6 +41,7 @@
             ./hosts/Blaze/configuration.nix
             nur.modules.nixos.default
             flatpaks.nixosModules.declarative-flatpak
+            nixpkgs-xr.nixosModules.nixpkgs-xr
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
