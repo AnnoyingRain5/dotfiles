@@ -24,8 +24,8 @@
   ];
 
   nix.settings = {
-    substituters = ["https://nix-community.cachix.org"];
-    trusted-public-keys = ["nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="];
+    substituters = [ "https://nix-community.cachix.org" ];
+    trusted-public-keys = [ "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=" ];
   };
 
   boot = {
@@ -330,7 +330,7 @@
       ];
       gamescopeSession = {
         enable = true;
-        args = ["-O DP-1"];
+        args = [ "-O DP-1" ];
       };
     };
     partition-manager.enable = true;
@@ -377,6 +377,11 @@
 
   };
   systemd.user.services."monado" = {
+    postStart = "/bin/sh -c '${pkgs.lighthouse-steamvr}/bin/lighthouse -s on -b C3:13:44:66:06:C6; exit 0;'
+      /bin/sh -c '${pkgs.lighthouse-steamvr}/bin/lighthouse -s on -b FC:2E:60:79:69:20; exit 0;'";
+    preStop = "/bin/sh -c '${pkgs.lighthouse-steamvr}/bin/lighthouse -s off -b C3:13:44:66:06:C6; exit 0;'
+      /bin/sh -c '${pkgs.lighthouse-steamvr}/bin/lighthouse -s off -b FC:2E:60:79:69:20; exit 0;'";
+
     environment = {
       STEAMVR_LH_ENABLE = "true";
       XRT_COMPOSITOR_COMPUTE = "1";
@@ -400,8 +405,8 @@
     # rule 1: 3d printer (?)
     # rule 2: Nintendo Switch (RCM)
     # rule 3: G29 racing wheel
-    # rule 4: pimax 5kx
-    # rule 5, 6, 7: xbox 360 kinect
+    # rule 4, 5: pimax 5kx
+    # rule 6, 7, 8: xbox 360 kinect
     udev.extraRules = ''
       SUBSYSTEMS=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0660", TAG+="uaccess"
 
@@ -409,7 +414,8 @@
 
       SUBSYSTEMS=="hid", KERNELS=="0003:046D:C24F.????", DRIVERS=="logitech", RUN+="/bin/sh -c 'chmod 666 %S%p/../../../range; chmod 777 %S%p/../../../leds/ %S%p/../../../leds/*; chmod 666 %S%p/../../../leds/*/brightness'"
 
-      ATTRS{idVendor}=="0483", ATTRS{idProduct}=="0101", TAG+="uaccess", ENV{ID_xrhardware}="1"
+      SUBSYSTEM=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="0101", MODE="0660", GROUP="plugdev", TAG+="uaccess", TAG+="udev-acl"
+      KERNEL=="hidraw*", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="0101", MODE="0660", GROUP="plugdev", TAG+="uaccess", TAG+="udev-acl"
 
       SUBSYSTEMS=="usb", ATTRS{idVendor}=="045e", ATTRS{idProduct}=="02b0" MODE="777", TAG+="uaccess"
       SUBSYSTEMS=="usb", ATTRS{idVendor}=="045e", ATTRS{idProduct}=="02ad" MODE="777", TAG+="uaccess"
@@ -494,8 +500,8 @@
             domain = "gitlab.freedesktop.org";
             owner = "Coreforge";
             repo = "monado";
-            rev = "b4e9d9ac79a82738600a44363349b89b79e889c9";
-            hash = "sha256-Me7abD8UQHPxot6AKMzNAOUKXwYdZ43QBaXhLcPYBgc=";
+            rev = "d0a7987124dba168c3c3011b900aed76b06517d6";
+            hash = "sha256-LTmAbIEwbI9UhqtpZLYf5jck9jqzvQJkF47szJgNNAw=";
           };
         }
       );

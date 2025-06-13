@@ -60,62 +60,91 @@
       source = dotfiles/scdaemon.conf;
     };
 
-    xdg.desktopEntries = {
-      wlx-overlay-s = {
-        name = "wlx-overlay-s";
-        genericName = "VR Overlay";
-        exec = "LIBMONADO_PATH=${pkgs.monado}/lib/libmonado.so wlx-overlay-s --openxr";
-        terminal = true;
-        categories = [ "Application" ];
-        mimeType = [ ];
-      };
-      start-monado = {
-        name = "Start Monado";
-        genericName = "VR Compositor";
-        exec = "systemctl --user start monado";
-        terminal = false;
-        categories = [ "Application" ];
-        mimeType = [ ];
-      };
-      stop-monado = {
-        name = "Stop Monado";
-        genericName = "VR Compositor";
-        exec = "systemctl --user stop monado";
-        terminal = false;
-        categories = [ "Application" ];
-        mimeType = [ ];
-      };
-    };
+    xdg.desktopEntries =
+      let
+        monado = pkgs.monado.overrideAttrs {
+          pname = "monado-pimax"; # optional but helps distinguishing between packages
 
-    xdg.configFile."openxr/1/active_runtime.json".text = ''
+          src = pkgs.fetchFromGitLab {
+            domain = "gitlab.freedesktop.org";
+            owner = "Coreforge";
+            repo = "monado";
+            rev = "d0a7987124dba168c3c3011b900aed76b06517d6";
+            hash = "sha256-LTmAbIEwbI9UhqtpZLYf5jck9jqzvQJkF47szJgNNAw=";
+          };
+        };
+      in
       {
-        "file_format_version": "1.0.0",
-        "runtime": {
-            "name": "Monado",
-            "library_path": "${pkgs.monado}/lib/libopenxr_monado.so"
+        wlx-overlay-s = {
+          name = "wlx-overlay-s";
+          genericName = "VR Overlay";
+          exec = "LIBMONADO_PATH=${pkgs.monado}/lib/libmonado.so wlx-overlay-s --openxr";
+          terminal = true;
+          categories = [ "Application" ];
+          mimeType = [ ];
+        };
+        start-monado = {
+          name = "Start Monado";
+          genericName = "VR Compositor";
+          exec = "systemctl --user start monado";
+          terminal = false;
+          categories = [ "Application" ];
+          mimeType = [ ];
+        };
+        stop-monado = {
+          name = "Stop Monado";
+          genericName = "VR Compositor";
+          exec = "systemctl --user stop monado";
+          terminal = false;
+          categories = [ "Application" ];
+          mimeType = [ ];
+        };
+      };
+
+    xdg.configFile."openxr/1/active_runtime.json".text =
+      let
+        monado = pkgs.monado.overrideAttrs {
+          pname = "monado-pimax"; # optional but helps distinguishing between packages
+
+          src = pkgs.fetchFromGitLab {
+            domain = "gitlab.freedesktop.org";
+            owner = "Coreforge";
+            repo = "monado";
+            rev = "d0a7987124dba168c3c3011b900aed76b06517d6";
+            hash = "sha256-LTmAbIEwbI9UhqtpZLYf5jck9jqzvQJkF47szJgNNAw=";
+          };
+        };
+      in
+      ''
+        {
+          "file_format_version": "1.0.0",
+          "runtime": {
+              "name": "Monado",
+              "library_path": "${pkgs.monado}/lib/libopenxr_monado.so"
+          }
         }
-      }
-    '';
+      '';
 
     xdg.configFile."openvr/openvrpaths.vrpath".text =
       let
-        opencomposite = pkgs.opencomposite.overrideAttrs (
-          finalAttrs: previousAttrs: {
-            src = pkgs.fetchFromGitLab {
-              domain = "gitlab.com";
-              owner = "peelz";
-              repo = "OpenOVR";
-              rev = "0ef5dd023fb196bace7c6edc8588b2dedb113da0";
-              hash = "sha256-WG+51mX5gK/yyUikzXT19H/UVk294QD6HgM9zJNC2b0=";
-              fetchSubmodules = true;
-            };
-            buildInputs = previousAttrs.buildInputs ++ [
-              pkgs.autoconf
-              pkgs.automake
-              pkgs.libtool
-            ];
-          }
-        );
+        opencomposite = pkgs.opencomposite;
+        #opencomposite = pkgs.opencomposite.overrideAttrs (
+        #finalAttrs: previousAttrs: {
+        #  src = pkgs.fetchFromGitLab {
+        #    domain = "gitlab.com";
+        #    owner = "peelz";
+        #   repo = "OpenOVR";
+        #    rev = "0ef5dd023fb196bace7c6edc8588b2dedb113da0";
+        #    hash = "sha256-WG+51mX5gK/yyUikzXT19H/UVk294QD6HgM9zJNC2b0=";
+        #    fetchSubmodules = true;
+        #  };
+        #  buildInputs = previousAttrs.buildInputs ++ [
+        #    pkgs.autoconf
+        #    pkgs.automake
+        #    pkgs.libtool
+        #  ];
+        #}
+        #);
       in
       ''
         {

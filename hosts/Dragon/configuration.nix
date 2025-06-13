@@ -16,9 +16,18 @@
   hardware.bluetooth.enable = true;
   hardware.bluetooth.settings.general.ControllerMode = "bredr";
 
-  nixpkgs.overlays = [
-    (self: super: { blender = super.blender.override { cudaSupport = true; }; })
-  ];
+nixpkgs.overlays = [
+  (self: super: {
+    blender = super.blender.overrideAttrs (oldAttrs: {
+      # Apply your patch
+      patches = (oldAttrs.patches or []) ++ [ ../../dotfiles/blender-xr.patch ];
+
+      # Also set cudaSupport here, as it's likely an attribute overrideAttrs can modify
+      cudaSupport = true;
+    });
+  })
+];
+
 
   # Enable OpenGL
   hardware.graphics = {
@@ -53,7 +62,6 @@
       ];
     };
   };
-
 
   security.pki.certificates = [
     ''
