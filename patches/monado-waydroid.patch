@@ -1,0 +1,324 @@
+From 9557ba9253bee920dd961a8610c7630e63035d72 Mon Sep 17 00:00:00 2001
+From: rcelyte <rcelyte@battletrains.org>
+Date: Fri, 20 Sep 2024 13:25:40 +0000
+Subject: [PATCH] Waydroid
+
+---
+ CMakeLists.txt                                |  8 +-
+ .../include/xrt/xrt_config_build.h.cmake_in   |  1 +
+ src/xrt/ipc/CMakeLists.txt                    |  4 +
+ .../org/freedesktop/monado/ipc/Client.java    |  5 +
+ src/xrt/ipc/server/ipc_server.h               | 19 ++++
+ .../ipc/server/ipc_server_mainloop_linux.c    | 98 +++++++++++++++++++
+ .../src/main/AndroidManifest.xml              |  2 +-
+ src/xrt/targets/openxr_android/build.gradle   |  3 +-
+ 8 files changed, 137 insertions(+), 3 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index bacc19b0a1..3742d27952 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -41,7 +41,7 @@ if(NOT WIN32 AND NOT ANDROID)
+ 		)
+ endif()
+ 
+-set(CMAKE_C_STANDARD 11)
++set(CMAKE_C_STANDARD 23)
+ set(CMAKE_C_STANDARD_REQUIRED ON)
+ 
+ set(CMAKE_CXX_STANDARD 20)
+@@ -173,6 +173,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+ 		pkg_search_module(WAYLAND_SCANNER wayland-scanner)
+ 		pkg_search_module(WAYLAND_PROTOCOLS wayland-protocols)
+ 		pkg_search_module(LIBDRM IMPORTED_TARGET libdrm)
++
++		pkg_check_modules(LIBGBINDER libgbinder)
+ 	endif()
+ 	find_package(OpenGL COMPONENTS GLX)
+ 	pkg_search_module(DBUS dbus-1)
+@@ -239,6 +241,7 @@ option_with_deps(XRT_HAVE_LIBBSD "Enable libbsd support" DEPENDS LIBBSD_FOUND)
+ option_with_deps(XRT_HAVE_LIBUDEV "Enable libudev (used for device probing on Linux)" DEPENDS UDEV_FOUND)
+ option_with_deps(XRT_HAVE_PERCETTO "Enable percetto support" DEPENDS PERCETTO_FOUND)
+ option_with_deps(XRT_HAVE_SYSTEMD "Enable systemd support" DEPENDS Systemd_FOUND)
++option_with_deps(XRT_HAVE_GBINDER "Enable libgbinder support" DEPENDS LIBGBINDER_FOUND)
+ 
+ # Only use system cJSON if it includes https://github.com/DaveGamble/cJSON/pull/377
+ option_with_deps(XRT_HAVE_SYSTEM_CJSON "Enable cJSON from system, instead of bundled source" DEPENDS CJSON_FOUND "cJSON_VERSION VERSION_GREATER_EQUAL 1.7.13")
+@@ -269,6 +272,7 @@ set(XRT_FEATURE_OPENXR_DEBUG_UTILS OFF) # Has never been enabled
+ option_with_deps(XRT_FEATURE_RENDERDOC "Enable RenderDoc API" DEPENDS "RT_LIBRARY OR WIN32 OR ANDROID")
+ option_with_deps(XRT_FEATURE_SERVICE "Enable separate service module for OpenXR runtime" DEPENDS XRT_MODULE_IPC XRT_FEATURE_OPENXR)
+ option_with_deps(XRT_FEATURE_SERVICE_SYSTEMD "Enable systemd socket activation of the service" DEPENDS XRT_HAVE_SYSTEMD XRT_FEATURE_SERVICE)
++option_with_deps(XRT_FEATURE_SERVICE_BINDER "Enable Android binder bridge for the service" DEPENDS XRT_HAVE_GBINDER XRT_FEATURE_SERVICE)
+ option_with_deps(XRT_FEATURE_SLAM "Enable SLAM tracking support" DEPENDS XRT_HAVE_OPENCV XRT_HAVE_LINUX)
+ option(XRT_FEATURE_SSE2 "Build using SSE2 instructions, if building for 32-bit x86" ON)
+ option_with_deps(XRT_FEATURE_STEAMVR_PLUGIN "Build SteamVR plugin" DEPENDS "NOT ANDROID")
+@@ -568,6 +572,7 @@ message(STATUS "#    OPENVR:          ${XRT_HAVE_OPENVR}")
+ message(STATUS "#    SDL2:            ${XRT_HAVE_SDL2}")
+ message(STATUS "#    SYSTEM_CJSON:    ${XRT_HAVE_SYSTEM_CJSON}")
+ message(STATUS "#    SYSTEMD:         ${XRT_HAVE_SYSTEMD}")
++message(STATUS "#    GBINDER:         ${XRT_HAVE_GBINDER}")
+ message(STATUS "#    TRACY:           ${XRT_HAVE_TRACY}")
+ message(STATUS "#    VULKAN:          ${XRT_HAVE_VULKAN}")
+ message(STATUS "#    WAYLAND:         ${XRT_HAVE_WAYLAND}")
+@@ -629,6 +634,7 @@ message(STATUS "#    FEATURE_OPENXR_XDEV_SPACE:                     ${XRT_FEATUR
+ message(STATUS "#    FEATURE_RENDERDOC:                             ${XRT_FEATURE_RENDERDOC}")
+ message(STATUS "#    FEATURE_SERVICE:                               ${XRT_FEATURE_SERVICE}")
+ message(STATUS "#    FEATURE_SERVICE_SYSTEMD:                       ${XRT_FEATURE_SERVICE_SYSTEMD}")
++message(STATUS "#    FEATURE_SERVICE_BINDER:                        ${XRT_FEATURE_SERVICE_BINDER}")
+ message(STATUS "#    FEATURE_SLAM:                                  ${XRT_FEATURE_SLAM}")
+ message(STATUS "#    FEATURE_SSE2:                                  ${XRT_FEATURE_SSE2}")
+ message(STATUS "#    FEATURE_STEAMVR_PLUGIN:                        ${XRT_FEATURE_STEAMVR_PLUGIN}")
+diff --git a/src/xrt/include/xrt/xrt_config_build.h.cmake_in b/src/xrt/include/xrt/xrt_config_build.h.cmake_in
+index 9b1255e896..42f7836098 100644
+--- a/src/xrt/include/xrt/xrt_config_build.h.cmake_in
++++ b/src/xrt/include/xrt/xrt_config_build.h.cmake_in
+@@ -74,6 +74,7 @@
+ #cmakedefine XRT_FEATURE_RENDERDOC
+ #cmakedefine XRT_FEATURE_SERVICE
+ #cmakedefine XRT_FEATURE_SERVICE_SYSTEMD
++#cmakedefine XRT_FEATURE_SERVICE_BINDER
+ #cmakedefine XRT_FEATURE_SLAM
+ #cmakedefine XRT_FEATURE_SSE2
+ #cmakedefine XRT_FEATURE_STEAMVR_PLUGIN
+diff --git a/src/xrt/ipc/CMakeLists.txt b/src/xrt/ipc/CMakeLists.txt
+index a2d50fbd22..6584ae0e28 100644
+--- a/src/xrt/ipc/CMakeLists.txt
++++ b/src/xrt/ipc/CMakeLists.txt
+@@ -138,6 +138,10 @@ elseif(XRT_HAVE_LINUX)
+ 	target_sources(
+ 		ipc_server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/server/ipc_server_mainloop_linux.c
+ 		)
++
++	if(XRT_HAVE_GBINDER)
++		target_include_directories(ipc_server PRIVATE ${LIBGBINDER_INCLUDE_DIRS})
++	endif()
+ elseif(WIN32)
+ 	target_sources(
+ 		ipc_server
+diff --git a/src/xrt/ipc/android/src/main/java/org/freedesktop/monado/ipc/Client.java b/src/xrt/ipc/android/src/main/java/org/freedesktop/monado/ipc/Client.java
+index 584cedbc4c..e4be1a23c4 100644
+--- a/src/xrt/ipc/android/src/main/java/org/freedesktop/monado/ipc/Client.java
++++ b/src/xrt/ipc/android/src/main/java/org/freedesktop/monado/ipc/Client.java
+@@ -132,6 +132,11 @@ public class Client implements ServiceConnection {
+     public int blockingConnect(Context context_, String packageName) {
+         Log.i(TAG, "blockingConnect");
+ 
++        try {
++            monado = IMonado.Stub.asInterface((IBinder)Class.forName("android.os.ServiceManager")
++                .getMethod("getService", String.class).invoke(null, "org.freedesktop.monado"));
++        } catch (Exception e) {}
++        if (monado == null)
+         synchronized (binderSync) {
+             if (!bind(context_, packageName)) {
+                 Log.e(TAG, "Bind failed immediately");
+diff --git a/src/xrt/ipc/server/ipc_server.h b/src/xrt/ipc/server/ipc_server.h
+index 493d5990b0..8ce000c4ab 100644
+--- a/src/xrt/ipc/server/ipc_server.h
++++ b/src/xrt/ipc/server/ipc_server.h
+@@ -25,6 +25,10 @@
+ 
+ #include <stdio.h>
+ 
++#if defined(XRT_OS_LINUX) && defined(XRT_FEATURE_SERVICE_BINDER)
++#include <gbinder/gbinder.h>
++#endif
++
+ 
+ #ifdef __cplusplus
+ extern "C" {
+@@ -291,6 +295,21 @@ struct ipc_server_mainloop
+ #ifndef XRT_IPC_GOT_IMPL
+ #error "Need port"
+ #endif
++
++#if defined(XRT_OS_LINUX) && defined(XRT_FEATURE_SERVICE_BINDER)
++	void *libgbinder_so;
++	typeof(gbinder_local_object_new_reply) *pfn_gbinder_local_object_new_reply;
++	typeof(gbinder_local_object_unref) *pfn_gbinder_local_object_unref;
++	typeof(gbinder_local_reply_append_int32) *pfn_gbinder_local_reply_append_int32;
++	typeof(gbinder_reader_read_dup_fd) *pfn_gbinder_reader_read_dup_fd;
++	typeof(gbinder_reader_read_fd) *pfn_gbinder_reader_read_fd;
++	typeof(gbinder_reader_read_uint32) *pfn_gbinder_reader_read_uint32;
++	typeof(gbinder_remote_request_init_reader) *pfn_gbinder_remote_request_init_reader;
++	typeof(gbinder_servicemanager_add_service_sync) *pfn_gbinder_servicemanager_add_service_sync;
++	typeof(gbinder_servicemanager_new2) *pfn_gbinder_servicemanager_new2;
++	typeof(gbinder_servicemanager_new_local_object) *pfn_gbinder_servicemanager_new_local_object;
++	typeof(gbinder_servicemanager_unref) *pfn_gbinder_servicemanager_unref;
++#endif
+ };
+ 
+ /*!
+diff --git a/src/xrt/ipc/server/ipc_server_mainloop_linux.c b/src/xrt/ipc/server/ipc_server_mainloop_linux.c
+index d364fbed38..b0ffa41e4e 100644
+--- a/src/xrt/ipc/server/ipc_server_mainloop_linux.c
++++ b/src/xrt/ipc/server/ipc_server_mainloop_linux.c
+@@ -46,6 +46,10 @@
+ #include <systemd/sd-daemon.h>
+ #endif
+ 
++#ifdef XRT_FEATURE_SERVICE_BINDER
++#include <dlfcn.h>
++#endif
++
+ /*
+  * "XRT_NO_STDIN" option disables stdin and prevents monado-service from terminating.
+  * This could be useful for situations where there is no proper or in a non-interactive shell.
+@@ -250,6 +254,10 @@ ipc_server_mainloop_poll(struct ipc_server *vs, struct ipc_server_mainloop *ml)
+ 		return;
+ 	}
+ 
++	#ifdef XRT_FEATURE_SERVICE_BINDER
++	g_main_context_iteration(NULL, false);
++	#endif
++
+ 	for (int i = 0; i < ret; i++) {
+ 		// If we get data on stdin, stop.
+ 		if (events[i].data.fd == 0) {
+@@ -264,6 +272,44 @@ ipc_server_mainloop_poll(struct ipc_server *vs, struct ipc_server_mainloop *ml)
+ 	}
+ }
+ 
++#ifdef XRT_FEATURE_SERVICE_BINDER
++static GBinderLocalReply *on_binder_message(GBinderLocalObject *const obj, GBinderRemoteRequest *const req,
++		const guint code, const guint flags, int *const status, void *const user_data) {
++	struct ipc_server *const vs = (struct ipc_server*)user_data;
++	enum {
++		TRANSACTION_connect = 1,
++		TRANSACTION_passAppSurface,
++		TRANSACTION_canDrawOverOtherApps,
++	};
++	GBinderLocalReply *reply = NULL;
++	switch(code) {
++		case TRANSACTION_connect: {
++			GBinderReader reader;
++			vs->ml.pfn_gbinder_remote_request_init_reader(req, &reader);
++			guint32 has_object = 0, has_comm = 0;
++			vs->ml.pfn_gbinder_reader_read_uint32(&reader, &has_object);
++			if(has_object != 0) {
++				vs->ml.pfn_gbinder_reader_read_uint32(&reader, &has_comm);
++				const int fd = vs->ml.pfn_gbinder_reader_read_dup_fd(&reader);
++				if(has_comm != 0)
++					vs->ml.pfn_gbinder_reader_read_fd(&reader);
++				if(fd != -1)
++					ipc_server_handle_client_connected(vs, fd);
++				else
++					U_LOG_E("BAD FD FROM BINDER");
++			}
++		} break;
++		case TRANSACTION_canDrawOverOtherApps: {
++			reply = vs->ml.pfn_gbinder_local_object_new_reply(obj);
++			vs->ml.pfn_gbinder_local_reply_append_int32(reply, 0);
++			vs->ml.pfn_gbinder_local_reply_append_int32(reply, 1);
++		} break;
++		default:;
++	}
++	return reply;
++}
++#endif
++
+ int
+ ipc_server_mainloop_init(struct ipc_server_mainloop *ml)
+ {
+@@ -275,6 +321,48 @@ ipc_server_mainloop_init(struct ipc_server_mainloop *ml)
+ 		return ret;
+ 	}
+ 
++	#ifdef XRT_FEATURE_SERVICE_BINDER
++	do {
++		ml->libgbinder_so = dlopen("libgbinder.so", RTLD_LAZY);
++		if(ml->libgbinder_so == NULL) {
++			U_LOG_W("dlopen(\"libgbinder.so\") failed: %s", dlerror()); \
++			break;
++		}
++
++		#define LOAD_PROC(name) { \
++			*(void**)&ml->pfn_##name = dlsym(ml->libgbinder_so, #name); \
++			char *const error = dlerror(); \
++			if(error != NULL) { \
++				U_LOG_W("dlsym(\"" #name "\") failed"); \
++				break; \
++			} \
++		}
++		LOAD_PROC(gbinder_local_object_new_reply)
++		LOAD_PROC(gbinder_local_object_unref)
++		LOAD_PROC(gbinder_local_reply_append_int32)
++		LOAD_PROC(gbinder_reader_read_dup_fd)
++		LOAD_PROC(gbinder_reader_read_fd)
++		LOAD_PROC(gbinder_reader_read_uint32)
++		LOAD_PROC(gbinder_remote_request_init_reader)
++		LOAD_PROC(gbinder_servicemanager_add_service_sync)
++		LOAD_PROC(gbinder_servicemanager_new2)
++		LOAD_PROC(gbinder_servicemanager_new_local_object)
++		LOAD_PROC(gbinder_servicemanager_unref)
++		#undef LOAD_PROC
++
++		// TODO: do we need to specify the protocol here? Should we read `/var/lib/waydroid/waydroid.cfg` and match that?
++		GBinderServiceManager *const manager = ml->pfn_gbinder_servicemanager_new2(GBINDER_DEFAULT_BINDER, "aidl3", "aidl3");
++		GBinderLocalObject *const local = ml->pfn_gbinder_servicemanager_new_local_object(manager, "org.freedesktop.monado.ipc.IMonado", on_binder_message,
++			(void*)((uintptr_t)ml - offsetof(struct ipc_server, ml)));
++		const int res = ml->pfn_gbinder_servicemanager_add_service_sync(manager, "org.freedesktop.monado", local);
++		ml->pfn_gbinder_local_object_unref(local);
++		if(res != GBINDER_STATUS_OK) {
++			U_LOG_W("gbinder_servicemanager_add_service_sync() failed");
++		}
++		ml->pfn_gbinder_servicemanager_unref(manager);
++	} while(false);
++	#endif
++
+ 	ret = init_epoll(ml);
+ 	if (ret < 0) {
+ 		ipc_server_mainloop_deinit(ml);
+@@ -291,6 +379,16 @@ ipc_server_mainloop_deinit(struct ipc_server_mainloop *ml)
+ 	if (ml == NULL) {
+ 		return;
+ 	}
++
++	#ifdef XRT_FEATURE_SERVICE_BINDER
++	if (ml->libgbinder_so != NULL) {
++		// TODO: unregister service
++
++		dlclose(ml->libgbinder_so);
++		ml->libgbinder_so = NULL;
++	}
++	#endif
++
+ 	if (ml->listen_socket > 0) {
+ 		// Close socket on exit
+ 		close(ml->listen_socket);
+diff --git a/src/xrt/targets/android_common/src/main/AndroidManifest.xml b/src/xrt/targets/android_common/src/main/AndroidManifest.xml
+index 2791bf06b8..0d47656a39 100644
+--- a/src/xrt/targets/android_common/src/main/AndroidManifest.xml
++++ b/src/xrt/targets/android_common/src/main/AndroidManifest.xml
+@@ -42,7 +42,7 @@
+ 
+     <application
+         android:allowBackup="true"
+-        android:extractNativeLibs="true"
++        android:extractNativeLibs="false"
+         android:supportsRtl="true"
+         android:theme="@style/AppTheme">
+         <!-- Main "about" activity -->
+diff --git a/src/xrt/targets/openxr_android/build.gradle b/src/xrt/targets/openxr_android/build.gradle
+index 434efca8e5..299adadd9f 100644
+--- a/src/xrt/targets/openxr_android/build.gradle
++++ b/src/xrt/targets/openxr_android/build.gradle
+@@ -230,6 +230,7 @@ android {
+             dimension 'deployment'
+             applicationIdSuffix '.out_of_process'
+             externalNativeBuild.cmake.arguments += "-DXRT_FEATURE_SERVICE=ON"
++            externalNativeBuild.cmake.arguments += "-DXRT_FEATURE_AHARDWARE_BUFFER=OFF"
+             externalNativeBuild.cmake.targets "openxr_monado", "monado-service"
+ 
+             buildConfigField "boolean", "inProcess", "false"
+@@ -251,7 +252,7 @@ android {
+             excludes += ['META-INF/*.kotlin_module']
+         }
+         jniLibs {
+-            useLegacyPackaging true
++            useLegacyPackaging false
+         }
+     }
+     namespace 'org.freedesktop.monado.openxr_runtime'
+-- 
+GitLab
+

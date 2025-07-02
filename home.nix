@@ -69,8 +69,8 @@
             domain = "gitlab.freedesktop.org";
             owner = "Coreforge";
             repo = "monado";
-            rev = "d0a7987124dba168c3c3011b900aed76b06517d6";
-            hash = "sha256-LTmAbIEwbI9UhqtpZLYf5jck9jqzvQJkF47szJgNNAw=";
+            rev = "a82eef73be841aff1324d32dbe9a031c6c0417c8";
+            hash = "sha256-Y96L4DU9bJWIoNg1YhpbAkZHnk9RUEslb2Fn0aPF6zQ=";
           };
         };
       in
@@ -110,8 +110,8 @@
             domain = "gitlab.freedesktop.org";
             owner = "Coreforge";
             repo = "monado";
-            rev = "d0a7987124dba168c3c3011b900aed76b06517d6";
-            hash = "sha256-LTmAbIEwbI9UhqtpZLYf5jck9jqzvQJkF47szJgNNAw=";
+            rev = "a82eef73be841aff1324d32dbe9a031c6c0417c8";
+            hash = "sha256-Y96L4DU9bJWIoNg1YhpbAkZHnk9RUEslb2Fn0aPF6zQ=";
           };
         };
       in

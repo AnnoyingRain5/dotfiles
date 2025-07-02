@@ -1,0 +1,13 @@
+diff --git a/src/xrt/auxiliary/fixup/pimax.c b/src/xrt/auxiliary/fixup/pimax.c
+index e5a6b96b0..d2633a1ed 100644
+--- a/src/xrt/auxiliary/fixup/pimax.c
++++ b/src/xrt/auxiliary/fixup/pimax.c
+@@ -845,7 +845,7 @@ long init_pimax8kx(struct fixup_context* ctx, struct fixup_func_list* funcs, str
+ 	xrtdev->get_view_poses = pimax_get_view_poses;
+ 	xrtdev->hmd->blend_modes[0] = XRT_BLEND_MODE_OPAQUE;
+ 	xrtdev->hmd->blend_mode_count = 1;
+-    xrtdev->stage_supported = false;
++    xrtdev->supported.stage = false;
+ 
+     /*
+      * the hmd doesn't actually have any inputs, but the IPC client doesn't like that

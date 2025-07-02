@@ -1,0 +1,39 @@
+From a23f08a9648c66dbc09648e976ac6b5eadbb8d6f Mon Sep 17 00:00:00 2001
+From: AnnoyingRains <avali@avali.zone>
+Date: Fri, 13 Jun 2025 10:53:28 +0000
+Subject: [PATCH] fix(vive): Return NULL instead of false
+
+---
+ src/xrt/drivers/vive/vive_controller.c | 2 +-
+ src/xrt/drivers/vive/vive_device.c     | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/xrt/drivers/vive/vive_controller.c b/src/xrt/drivers/vive/vive_controller.c
+index bd12819b08..70b87d38f4 100644
+--- a/src/xrt/drivers/vive/vive_controller.c
++++ b/src/xrt/drivers/vive/vive_controller.c
+@@ -1068,7 +1068,7 @@ vive_controller_create(struct os_hid_device *controller_hid, enum watchman_gen w
+ 	int ret = os_mutex_init(&d->fusion.mutex);
+ 	if (ret != 0) {
+ 		VIVE_ERROR(d, "Failed to init 3dof mutex");
+-		return false;
++		return NULL;
+ 	}
+ 
+ 	/* default values, will be queried from device */
+diff --git a/src/xrt/drivers/vive/vive_device.c b/src/xrt/drivers/vive/vive_device.c
+index 03c3505004..d247553fbb 100644
+--- a/src/xrt/drivers/vive/vive_device.c
++++ b/src/xrt/drivers/vive/vive_device.c
+@@ -1218,7 +1218,7 @@ vive_device_create(struct os_hid_device *mainboard_dev,
+ 	ret = os_mutex_init(&d->fusion.mutex);
+ 	if (ret != 0) {
+ 		VIVE_ERROR(d, "Failed to init 3dof mutex");
+-		return false;
++		return NULL;
+ 	}
+ 
+ 	ret = os_thread_helper_start(&d->sensors_thread, vive_sensors_run_thread, d);
+-- 
+GitLab
+

@@ -1,0 +1,1115 @@
+From bd9a43c9d1a43d2ddece158d98387a7c9b872c6b Mon Sep 17 00:00:00 2001
+From: Jakob Bornecrantz <tbornecrantz@nvidia.com>
+Date: Thu, 1 Aug 2024 15:27:07 +0100
+Subject: [PATCH] xrt: Make the supported fields on xrt_device be a struct
+
+This makes it trivial for the IPC layer to correctly expose the
+supported functionality and methods of the device. As I did this change
+I noticed multiple fields that were not copied over in the IPC layer.
+
+Part-of: <https://gitlab.freedesktop.org/monado/monado/-/merge_requests/2466>
+---
+ src/xrt/auxiliary/util/u_space_overseer.c     |  4 +-
+ src/xrt/auxiliary/util/u_system_helpers.c     |  2 +-
+ src/xrt/drivers/android/android_sensors.c     |  4 +-
+ src/xrt/drivers/arduino/arduino_device.c      |  4 +-
+ src/xrt/drivers/daydream/daydream_device.c    |  4 +-
+ src/xrt/drivers/hdk/hdk_device.cpp            |  4 +-
+ src/xrt/drivers/ht/ht_driver.c                |  6 +--
+ src/xrt/drivers/ht_ctrl_emu/ht_ctrl_emu.cpp   |  6 +--
+ src/xrt/drivers/hydra/hydra_driver.c          |  4 +-
+ src/xrt/drivers/multi_wrapper/multi.c         |  4 +-
+ src/xrt/drivers/north_star/ns_hmd.c           |  6 +--
+ src/xrt/drivers/ohmd/oh_device.c              | 10 ++---
+ .../drivers/opengloves/opengloves_device.c    |  4 +-
+ src/xrt/drivers/psmv/psmv_driver.c            |  4 +-
+ src/xrt/drivers/pssense/pssense_driver.c      |  4 +-
+ src/xrt/drivers/psvr/psvr_device.c            |  4 +-
+ src/xrt/drivers/realsense/rs_ddev.c           |  4 +-
+ src/xrt/drivers/realsense/rs_hdev.c           |  4 +-
+ src/xrt/drivers/remote/r_device.c             |  6 +--
+ src/xrt/drivers/remote/r_hmd.c                |  6 +--
+ src/xrt/drivers/rokid/rokid_hmd.c             |  4 +-
+ src/xrt/drivers/sample/sample_hmd.c           |  4 +-
+ src/xrt/drivers/simula/svr_hmd.c              |  6 +--
+ .../drivers/simulated/simulated_controller.c  |  6 +--
+ src/xrt/drivers/simulated/simulated_hmd.c     |  2 +-
+ src/xrt/drivers/steamvr_lh/device.cpp         | 12 +++---
+ src/xrt/drivers/survive/survive_driver.c      | 14 +++---
+ src/xrt/drivers/twrap/twrap_slam.c            |  4 +-
+ src/xrt/drivers/ultraleap_v2/ulv2_driver.cpp  |  2 +-
+ src/xrt/drivers/ultraleap_v5/ulv5_driver.cpp  |  2 +-
+ src/xrt/drivers/vive/vive_controller.c        |  6 +--
+ src/xrt/drivers/vive/vive_device.c            |  6 +--
+ src/xrt/drivers/wmr/wmr_controller_base.c     |  6 +--
+ src/xrt/drivers/wmr/wmr_hmd.c                 |  6 +--
+ src/xrt/drivers/xreal_air/xreal_air_hmd.c     |  4 +-
+ src/xrt/include/xrt/xrt_device.h              | 43 +++++++++++++------
+ src/xrt/ipc/client/ipc_client_device.c        | 14 ++----
+ src/xrt/ipc/client/ipc_client_hmd.c           | 14 +-----
+ src/xrt/ipc/server/ipc_server_process.c       | 14 +-----
+ src/xrt/ipc/shared/ipc_protocol.h             | 14 +-----
+ src/xrt/state_trackers/oxr/oxr_api_session.c  |  8 ++--
+ .../state_trackers/oxr/oxr_body_tracking.c    |  6 +--
+ .../state_trackers/oxr/oxr_face_tracking.c    |  2 +-
+ .../oxr/oxr_face_tracking2_fb.c               |  2 +-
+ src/xrt/state_trackers/oxr/oxr_system.c       | 24 +++++------
+ .../steamvr_drv/ovrd_driver.cpp               | 10 ++---
+ .../targets/common/target_builder_simulated.c |  4 +-
+ src/xrt/targets/libmonado/monado.c            |  6 +--
+ 48 files changed, 159 insertions(+), 180 deletions(-)
+
+diff --git a/src/xrt/auxiliary/util/u_space_overseer.c b/src/xrt/auxiliary/util/u_space_overseer.c
+index 55d680ecb9..85dea10629 100644
+--- a/src/xrt/auxiliary/util/u_space_overseer.c
++++ b/src/xrt/auxiliary/util/u_space_overseer.c
+@@ -296,7 +296,7 @@ notify_ref_space_usage_device(struct u_space_overseer *uso, enum xrt_reference_s
+ 		xdev = uso->notify;
+ 	}
+ 
+-	if (xdev == NULL || !xdev->ref_space_usage_supported) {
++	if (xdev == NULL || !xdev->supported.ref_space_usage) {
+ 		return;
+ 	}
+ 
+@@ -1149,7 +1149,7 @@ u_space_overseer_legacy_setup(struct u_space_overseer *uso,
+ 	xrt_space_reference(&uso->base.semantic.local, NULL);
+ 	xrt_space_reference(&uso->base.semantic.unbounded, NULL);
+ 
+-	if (head != NULL && head->stage_supported) {
++	if (head != NULL && head->supported.stage) {
+ 		// stage poses are polled from the driver
+ 		u_space_overseer_create_pose_space(uso, head, XRT_INPUT_GENERIC_STAGE_SPACE_POSE,
+ 		                                   &uso->base.semantic.stage);
+diff --git a/src/xrt/auxiliary/util/u_system_helpers.c b/src/xrt/auxiliary/util/u_system_helpers.c
+index ac38fb7497..0c557de77d 100644
+--- a/src/xrt/auxiliary/util/u_system_helpers.c
++++ b/src/xrt/auxiliary/util/u_system_helpers.c
+@@ -262,7 +262,7 @@ u_system_devices_get_ht_device(struct xrt_system_devices *xsysd, enum xrt_input_
+ 	for (uint32_t i = 0; i < xsysd->xdev_count; i++) {
+ 		struct xrt_device *xdev = xsysd->xdevs[i];
+ 
+-		if (xdev == NULL || !xdev->hand_tracking_supported) {
++		if (xdev == NULL || !xdev->supported.hand_tracking) {
+ 			continue;
+ 		}
+ 
+diff --git a/src/xrt/drivers/android/android_sensors.c b/src/xrt/drivers/android/android_sensors.c
+index 7f222e788d..017cef6702 100644
+--- a/src/xrt/drivers/android/android_sensors.c
++++ b/src/xrt/drivers/android/android_sensors.c
+@@ -327,8 +327,8 @@ android_device_create(void)
+ 	u_var_add_ro_vec3_f32(d, &d->fusion.last.accel, "last.accel");
+ 	u_var_add_ro_vec3_f32(d, &d->fusion.last.gyro, "last.gyro");
+ 
+-	d->base.orientation_tracking_supported = true;
+-	d->base.position_tracking_supported = false;
++	d->base.supported.orientation_tracking = true;
++	d->base.supported.position_tracking = false;
+ 
+ 	// Distortion information.
+ 	u_distortion_mesh_fill_in_compute(&d->base);
+diff --git a/src/xrt/drivers/arduino/arduino_device.c b/src/xrt/drivers/arduino/arduino_device.c
+index 9ea0bce2c0..535951836a 100644
+--- a/src/xrt/drivers/arduino/arduino_device.c
++++ b/src/xrt/drivers/arduino/arduino_device.c
+@@ -430,8 +430,8 @@ arduino_device_create(struct os_ble_device *ble)
+ 	u_var_add_ro_vec3_f32(ad, &ad->fusion.last.accel, "last.accel");
+ 	u_var_add_ro_vec3_f32(ad, &ad->fusion.last.gyro, "last.gyro");
+ 
+-	ad->base.orientation_tracking_supported = true;
+-	ad->base.position_tracking_supported = false;
++	ad->base.supported.orientation_tracking = true;
++	ad->base.supported.position_tracking = false;
+ 	ad->base.device_type = XRT_DEVICE_TYPE_ANY_HAND_CONTROLLER;
+ 
+ 	ARDUINO_DEBUG(ad, "Created device!");
+diff --git a/src/xrt/drivers/daydream/daydream_device.c b/src/xrt/drivers/daydream/daydream_device.c
+index b084469369..80fd0e424f 100644
+--- a/src/xrt/drivers/daydream/daydream_device.c
++++ b/src/xrt/drivers/daydream/daydream_device.c
+@@ -402,8 +402,8 @@ daydream_device_create(struct os_ble_device *ble)
+ 	u_var_add_ro_vec3_f32(dd, &dd->fusion.last.accel, "last.accel");
+ 	u_var_add_ro_vec3_f32(dd, &dd->fusion.last.gyro, "last.gyro");
+ 
+-	dd->base.orientation_tracking_supported = true;
+-	dd->base.position_tracking_supported = false;
++	dd->base.supported.orientation_tracking = true;
++	dd->base.supported.position_tracking = false;
+ 	dd->base.device_type = XRT_DEVICE_TYPE_ANY_HAND_CONTROLLER;
+ 
+ 	DAYDREAM_DEBUG(dd, "Created device!");
+diff --git a/src/xrt/drivers/hdk/hdk_device.cpp b/src/xrt/drivers/hdk/hdk_device.cpp
+index c2f1d80b97..a407259bb4 100644
+--- a/src/xrt/drivers/hdk/hdk_device.cpp
++++ b/src/xrt/drivers/hdk/hdk_device.cpp
+@@ -489,8 +489,8 @@ hdk_device_create(struct os_hid_device *dev, enum HDK_VARIANT variant)
+ 		u_device_dump_config(&hd->base, __func__, hd->base.str);
+ 	}
+ 
+-	hd->base.orientation_tracking_supported = true;
+-	hd->base.position_tracking_supported = false;
++	hd->base.supported.orientation_tracking = true;
++	hd->base.supported.position_tracking = false;
+ 	hd->base.device_type = XRT_DEVICE_TYPE_HMD;
+ 
+ 	return hd;
+diff --git a/src/xrt/drivers/ht/ht_driver.c b/src/xrt/drivers/ht/ht_driver.c
+index 3e88acef0e..bc357e787b 100644
+--- a/src/xrt/drivers/ht/ht_driver.c
++++ b/src/xrt/drivers/ht/ht_driver.c
+@@ -217,9 +217,9 @@ ht_device_create_common(struct t_stereo_camera_calibration *calib,
+ 	// Yes, you need all of these. Yes, I tried disabling them all one at a time. You need all of these.
+ 	htd->base.name = XRT_DEVICE_HAND_TRACKER;
+ 	htd->base.device_type = XRT_DEVICE_TYPE_HAND_TRACKER;
+-	htd->base.orientation_tracking_supported = true;
+-	htd->base.position_tracking_supported = true;
+-	htd->base.hand_tracking_supported = true;
++	htd->base.supported.orientation_tracking = true;
++	htd->base.supported.position_tracking = true;
++	htd->base.supported.hand_tracking = true;
+ 
+ 	htd->sync = sync;
+ 
+diff --git a/src/xrt/drivers/ht_ctrl_emu/ht_ctrl_emu.cpp b/src/xrt/drivers/ht_ctrl_emu/ht_ctrl_emu.cpp
+index a6a10a0dca..72e445df59 100644
+--- a/src/xrt/drivers/ht_ctrl_emu/ht_ctrl_emu.cpp
++++ b/src/xrt/drivers/ht_ctrl_emu/ht_ctrl_emu.cpp
+@@ -443,9 +443,9 @@ cemu_devices_create(struct xrt_device *head, struct xrt_device *hands, struct xr
+ 		cemud[i]->base.tracking_origin = hands->tracking_origin;
+ 
+ 		cemud[i]->base.name = XRT_DEVICE_SIMPLE_CONTROLLER;
+-		cemud[i]->base.hand_tracking_supported = true;
+-		cemud[i]->base.orientation_tracking_supported = true;
+-		cemud[i]->base.position_tracking_supported = true;
++		cemud[i]->base.supported.hand_tracking = true;
++		cemud[i]->base.supported.orientation_tracking = true;
++		cemud[i]->base.supported.position_tracking = true;
+ 
+ 
+ 		cemud[i]->base.inputs[CEMU_INDEX_HAND_TRACKING].name =
+diff --git a/src/xrt/drivers/hydra/hydra_driver.c b/src/xrt/drivers/hydra/hydra_driver.c
+index a71eb127d3..d4bbcae530 100644
+--- a/src/xrt/drivers/hydra/hydra_driver.c
++++ b/src/xrt/drivers/hydra/hydra_driver.c
+@@ -825,8 +825,8 @@ hydra_found(struct xrt_prober *xp,
+ 
+ 		hd->base.tracking_origin = &hs->base;
+ 
+-		hd->base.position_tracking_supported = true;
+-		hd->base.orientation_tracking_supported = true;
++		hd->base.supported.position_tracking = true;
++		hd->base.supported.orientation_tracking = true;
+ 		hd->base.device_type = XRT_DEVICE_TYPE_ANY_HAND_CONTROLLER;
+ 
+ 		out_xdevs[i] = &(hd->base);
+diff --git a/src/xrt/drivers/multi_wrapper/multi.c b/src/xrt/drivers/multi_wrapper/multi.c
+index eaa8d5eb32..018ce3810d 100644
+--- a/src/xrt/drivers/multi_wrapper/multi.c
++++ b/src/xrt/drivers/multi_wrapper/multi.c
+@@ -246,8 +246,8 @@ multi_create_tracking_override(enum xrt_tracking_override_type override_type,
+ 	d->base = *tracking_override_target;
+ 
+ 	// but take orientation and position tracking capabilities from tracker
+-	d->base.orientation_tracking_supported = tracking_override_tracker->orientation_tracking_supported;
+-	d->base.position_tracking_supported = tracking_override_tracker->position_tracking_supported;
++	d->base.supported.orientation_tracking = tracking_override_tracker->supported.orientation_tracking;
++	d->base.supported.position_tracking = tracking_override_tracker->supported.position_tracking;
+ 
+ 	// because we use the tracking data of the tracker, we use its tracking origin instead
+ 	d->base.tracking_origin = tracking_override_tracker->tracking_origin;
+diff --git a/src/xrt/drivers/north_star/ns_hmd.c b/src/xrt/drivers/north_star/ns_hmd.c
+index 5c672e14b8..e168ad9151 100644
+--- a/src/xrt/drivers/north_star/ns_hmd.c
++++ b/src/xrt/drivers/north_star/ns_hmd.c
+@@ -482,8 +482,8 @@ ns_hmd_create(const cJSON *config_json)
+ 	    XRT_SPACE_RELATION_ORIENTATION_TRACKED_BIT);
+ 	// Appeases the inner workings of Monado for when there's no head tracker and we're giving a fake pose through
+ 	// the debug gui
+-	ns->base.orientation_tracking_supported = true;
+-	ns->base.position_tracking_supported = true;
++	ns->base.supported.orientation_tracking = true;
++	ns->base.supported.position_tracking = true;
+ 	ns->base.device_type = XRT_DEVICE_TYPE_HMD;
+ 
+ 
+@@ -511,7 +511,7 @@ ns_hmd_create(const cJSON *config_json)
+ 	// Setup variable tracker.
+ 	u_var_add_root(ns, "North Star", true);
+ 	u_var_add_pose(ns, &ns->no_tracker_relation.pose, "pose");
+-	ns->base.orientation_tracking_supported = true;
++	ns->base.supported.orientation_tracking = true;
+ 	ns->base.device_type = XRT_DEVICE_TYPE_HMD;
+ 
+ 	size_t idx = 0;
+diff --git a/src/xrt/drivers/ohmd/oh_device.c b/src/xrt/drivers/ohmd/oh_device.c
+index 6c6643b015..fddce83be7 100644
+--- a/src/xrt/drivers/ohmd/oh_device.c
++++ b/src/xrt/drivers/ohmd/oh_device.c
+@@ -1030,8 +1030,8 @@ create_hmd(ohmd_context *ctx, int device_idx, int device_flags)
+ 		u_device_dump_config(&ohd->base, __func__, prod);
+ 	}
+ 
+-	ohd->base.orientation_tracking_supported = (device_flags & OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKING) != 0;
+-	ohd->base.position_tracking_supported = (device_flags & OHMD_DEVICE_FLAGS_POSITIONAL_TRACKING) != 0;
++	ohd->base.supported.orientation_tracking = (device_flags & OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKING) != 0;
++	ohd->base.supported.position_tracking = (device_flags & OHMD_DEVICE_FLAGS_POSITIONAL_TRACKING) != 0;
+ 	ohd->base.device_type = XRT_DEVICE_TYPE_HMD;
+ 
+ 
+@@ -1157,8 +1157,8 @@ create_controller(ohmd_context *ctx, int device_idx, int device_flags, enum xrt_
+ 	snprintf(ohd->base.str, XRT_DEVICE_NAME_LEN, "%s (OpenHMD)", prod);
+ 	snprintf(ohd->base.serial, XRT_DEVICE_NAME_LEN, "%s (OpenHMD)", prod);
+ 
+-	ohd->base.orientation_tracking_supported = (device_flags & OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKING) != 0;
+-	ohd->base.position_tracking_supported = (device_flags & OHMD_DEVICE_FLAGS_POSITIONAL_TRACKING) != 0;
++	ohd->base.supported.orientation_tracking = (device_flags & OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKING) != 0;
++	ohd->base.supported.position_tracking = (device_flags & OHMD_DEVICE_FLAGS_POSITIONAL_TRACKING) != 0;
+ 	ohd->base.device_type = device_type;
+ 
+ 	ohmd_device_geti(ohd->dev, OHMD_CONTROLS_HINTS, ohd->controls_fn);
+@@ -1271,7 +1271,7 @@ oh_device_create(ohmd_context *ctx, bool no_hmds, struct xrt_device **out_xdevs)
+ 
+ 			sys->devices[OHMD_HMD_INDEX] = hmd;
+ 
+-			if (hmd->base.position_tracking_supported) {
++			if (hmd->base.supported.position_tracking) {
+ 				sys->base.type = XRT_TRACKING_TYPE_OTHER;
+ 			}
+ 
+diff --git a/src/xrt/drivers/opengloves/opengloves_device.c b/src/xrt/drivers/opengloves/opengloves_device.c
+index b5b8dbe1ce..f01ae6668c 100644
+--- a/src/xrt/drivers/opengloves/opengloves_device.c
++++ b/src/xrt/drivers/opengloves/opengloves_device.c
+@@ -290,8 +290,8 @@ opengloves_device_create(struct opengloves_communication_device *ocd, enum xrt_h
+ 	od->base.inputs[OPENGLOVES_INPUT_INDEX_HAND_TRACKING].name =
+ 	    od->hand == XRT_HAND_LEFT ? XRT_INPUT_GENERIC_HAND_TRACKING_LEFT : XRT_INPUT_GENERIC_HAND_TRACKING_RIGHT;
+ 
+-	od->base.hand_tracking_supported = true;
+-	od->base.force_feedback_supported = true;
++	od->base.supported.hand_tracking = true;
++	od->base.supported.force_feedback = true;
+ 
+ 	// inputs
+ 	od->base.update_inputs = opengloves_device_update_inputs;
+diff --git a/src/xrt/drivers/psmv/psmv_driver.c b/src/xrt/drivers/psmv/psmv_driver.c
+index 838dac8a4b..cd42c415b0 100644
+--- a/src/xrt/drivers/psmv/psmv_driver.c
++++ b/src/xrt/drivers/psmv/psmv_driver.c
+@@ -1225,8 +1225,8 @@ psmv_device_create(struct xrt_prober *xp, struct xrt_prober_device *xpdev, struc
+ 	u_var_add_log_level(psmv, &psmv->log_level, "Log level");
+ 	// clang-format on
+ 
+-	psmv->base.orientation_tracking_supported = true;
+-	psmv->base.position_tracking_supported = psmv->ball != NULL;
++	psmv->base.supported.orientation_tracking = true;
++	psmv->base.supported.position_tracking = psmv->ball != NULL;
+ 	psmv->base.device_type = XRT_DEVICE_TYPE_ANY_HAND_CONTROLLER;
+ 
+ 	// And finally done
+diff --git a/src/xrt/drivers/pssense/pssense_driver.c b/src/xrt/drivers/pssense/pssense_driver.c
+index e2ef0d4a38..5b35992d2c 100644
+--- a/src/xrt/drivers/pssense/pssense_driver.c
++++ b/src/xrt/drivers/pssense/pssense_driver.c
+@@ -895,8 +895,8 @@ pssense_found(struct xrt_prober *xp,
+ 	pssense->base.get_tracked_pose = pssense_get_tracked_pose;
+ 	pssense->base.get_battery_status = pssense_get_battery_status;
+ 	pssense->base.destroy = pssense_device_destroy;
+-	pssense->base.orientation_tracking_supported = true;
+-	pssense->base.battery_status_supported = true;
++	pssense->base.supported.orientation_tracking = true;
++	pssense->base.supported.battery_status = true;
+ 
+ 	pssense->base.binding_profiles = binding_profiles_pssense;
+ 	pssense->base.binding_profile_count = ARRAY_SIZE(binding_profiles_pssense);
+diff --git a/src/xrt/drivers/psvr/psvr_device.c b/src/xrt/drivers/psvr/psvr_device.c
+index 6b0aa3ee0d..7996acf763 100644
+--- a/src/xrt/drivers/psvr/psvr_device.c
++++ b/src/xrt/drivers/psvr/psvr_device.c
+@@ -1175,8 +1175,8 @@ psvr_device_create_auto_prober(struct hid_device_info *sensor_hid_info,
+ 		psvr->base.tracking_origin = psvr->tracker->origin;
+ 	}
+ 
+-	psvr->base.orientation_tracking_supported = true;
+-	psvr->base.position_tracking_supported = psvr->tracker != NULL;
++	psvr->base.supported.orientation_tracking = true;
++	psvr->base.supported.position_tracking = psvr->tracker != NULL;
+ 	psvr->base.device_type = XRT_DEVICE_TYPE_HMD;
+ 
+ 	PSVR_DEBUG(psvr, "YES!");
+diff --git a/src/xrt/drivers/realsense/rs_ddev.c b/src/xrt/drivers/realsense/rs_ddev.c
+index e77022e947..89c721c971 100644
+--- a/src/xrt/drivers/realsense/rs_ddev.c
++++ b/src/xrt/drivers/realsense/rs_ddev.c
+@@ -498,8 +498,8 @@ rs_ddev_create(int device_idx)
+ 		return NULL;
+ 	}
+ 
+-	rs->base.orientation_tracking_supported = true;
+-	rs->base.position_tracking_supported = true;
++	rs->base.supported.orientation_tracking = true;
++	rs->base.supported.position_tracking = true;
+ 	rs->base.device_type = XRT_DEVICE_TYPE_GENERIC_TRACKER;
+ 
+ 	return &rs->base;
+diff --git a/src/xrt/drivers/realsense/rs_hdev.c b/src/xrt/drivers/realsense/rs_hdev.c
+index f2fc0354f4..f6b09f334c 100644
+--- a/src/xrt/drivers/realsense/rs_hdev.c
++++ b/src/xrt/drivers/realsense/rs_hdev.c
+@@ -1007,8 +1007,8 @@ rs_hdev_create(struct xrt_prober *xp, int device_idx)
+ 
+ 	xd->inputs[0].name = XRT_INPUT_GENERIC_TRACKER_POSE;
+ 
+-	xd->orientation_tracking_supported = true;
+-	xd->position_tracking_supported = true;
++	xd->supported.orientation_tracking = true;
++	xd->supported.position_tracking = true;
+ 
+ 	xd->update_inputs = u_device_noop_update_inputs;
+ 	xd->get_tracked_pose = rs_hdev_get_tracked_pose;
+diff --git a/src/xrt/drivers/remote/r_device.c b/src/xrt/drivers/remote/r_device.c
+index c9638e74cc..d081546408 100644
+--- a/src/xrt/drivers/remote/r_device.c
++++ b/src/xrt/drivers/remote/r_device.c
+@@ -217,9 +217,9 @@ r_device_create(struct r_hub *r, bool is_left)
+ 	rd->base.set_output = r_device_set_output;
+ 	rd->base.destroy = r_device_destroy;
+ 	rd->base.tracking_origin = &r->origin;
+-	rd->base.orientation_tracking_supported = true;
+-	rd->base.position_tracking_supported = true;
+-	rd->base.hand_tracking_supported = true;
++	rd->base.supported.orientation_tracking = true;
++	rd->base.supported.position_tracking = true;
++	rd->base.supported.hand_tracking = true;
+ 	rd->base.name = XRT_DEVICE_INDEX_CONTROLLER;
+ 	rd->base.binding_profiles = vive_binding_profiles_index;
+ 	rd->base.binding_profile_count = vive_binding_profiles_index_count;
+diff --git a/src/xrt/drivers/remote/r_hmd.c b/src/xrt/drivers/remote/r_hmd.c
+index b3de74f187..0401177130 100644
+--- a/src/xrt/drivers/remote/r_hmd.c
++++ b/src/xrt/drivers/remote/r_hmd.c
+@@ -150,9 +150,9 @@ r_hmd_create(struct r_hub *r)
+ 	rh->base.set_output = r_hmd_set_output;
+ 	rh->base.destroy = r_hmd_destroy;
+ 	rh->base.tracking_origin = &r->origin;
+-	rh->base.orientation_tracking_supported = true;
+-	rh->base.position_tracking_supported = true;
+-	rh->base.hand_tracking_supported = false;
++	rh->base.supported.orientation_tracking = true;
++	rh->base.supported.position_tracking = true;
++	rh->base.supported.hand_tracking = false;
+ 	rh->base.name = XRT_DEVICE_GENERIC_HMD;
+ 	rh->base.device_type = XRT_DEVICE_TYPE_HMD;
+ 	rh->base.inputs[0].name = XRT_INPUT_GENERIC_HEAD_POSE;
+diff --git a/src/xrt/drivers/rokid/rokid_hmd.c b/src/xrt/drivers/rokid/rokid_hmd.c
+index ceb50dd5cf..905f38a111 100644
+--- a/src/xrt/drivers/rokid/rokid_hmd.c
++++ b/src/xrt/drivers/rokid/rokid_hmd.c
+@@ -490,8 +490,8 @@ rokid_hmd_create(struct xrt_prober_device *prober_device)
+ 	rokid->base.name = XRT_DEVICE_GENERIC_HMD;
+ 	rokid->base.device_type = XRT_DEVICE_TYPE_HMD;
+ 	rokid->base.inputs[0].name = XRT_INPUT_GENERIC_HEAD_POSE;
+-	rokid->base.orientation_tracking_supported = true;
+-	rokid->base.position_tracking_supported = false;
++	rokid->base.supported.orientation_tracking = true;
++	rokid->base.supported.position_tracking = false;
+ 
+ 	// Set up display details
+ 	// refresh rate
+diff --git a/src/xrt/drivers/sample/sample_hmd.c b/src/xrt/drivers/sample/sample_hmd.c
+index e6b6b7523b..a1f1a6c5f4 100644
+--- a/src/xrt/drivers/sample/sample_hmd.c
++++ b/src/xrt/drivers/sample/sample_hmd.c
+@@ -201,8 +201,8 @@ sample_hmd_create(void)
+ 	hmd->base.name = XRT_DEVICE_GENERIC_HMD;
+ 	hmd->base.device_type = XRT_DEVICE_TYPE_HMD;
+ 	hmd->base.inputs[0].name = XRT_INPUT_GENERIC_HEAD_POSE;
+-	hmd->base.orientation_tracking_supported = true;
+-	hmd->base.position_tracking_supported = true;
++	hmd->base.supported.orientation_tracking = true;
++	hmd->base.supported.position_tracking = true;
+ 
+ 	// Set up display details
+ 	// refresh rate
+diff --git a/src/xrt/drivers/simula/svr_hmd.c b/src/xrt/drivers/simula/svr_hmd.c
+index 0c2ed07ab7..1af57ae4b3 100644
+--- a/src/xrt/drivers/simula/svr_hmd.c
++++ b/src/xrt/drivers/simula/svr_hmd.c
+@@ -234,8 +234,8 @@ svr_hmd_create(struct svr_two_displays_distortion *distortion)
+ 	svr->base.name = XRT_DEVICE_GENERIC_HMD;
+ 
+ 	// Sorta a lie, we have to do this to make the state tracker happy. (Should multi.c override these?)
+-	svr->base.orientation_tracking_supported = true;
+-	svr->base.position_tracking_supported = true;
++	svr->base.supported.orientation_tracking = true;
++	svr->base.supported.position_tracking = true;
+ 
+ 	svr->base.device_type = XRT_DEVICE_TYPE_HMD;
+ 
+@@ -271,7 +271,7 @@ svr_hmd_create(struct svr_two_displays_distortion *distortion)
+ 
+ 	// Setup variable tracker.
+ 	u_var_add_root(svr, "Simula HMD", true);
+-	svr->base.orientation_tracking_supported = true;
++	svr->base.supported.orientation_tracking = true;
+ 	svr->base.device_type = XRT_DEVICE_TYPE_HMD;
+ 
+ 	size_t idx = 0;
+diff --git a/src/xrt/drivers/simulated/simulated_controller.c b/src/xrt/drivers/simulated/simulated_controller.c
+index 09d2216b1e..ddf9d4391f 100644
+--- a/src/xrt/drivers/simulated/simulated_controller.c
++++ b/src/xrt/drivers/simulated/simulated_controller.c
+@@ -383,9 +383,9 @@ simulated_create_controller(enum xrt_device_name name,
+ 	sd->base.set_output = simulated_device_set_output;
+ 	sd->base.destroy = simulated_device_destroy;
+ 	sd->base.tracking_origin = origin;
+-	sd->base.orientation_tracking_supported = true;
+-	sd->base.position_tracking_supported = true;
+-	sd->base.hand_tracking_supported = false;
++	sd->base.supported.orientation_tracking = true;
++	sd->base.supported.position_tracking = true;
++	sd->base.supported.hand_tracking = false;
+ 	sd->base.name = name;
+ 	sd->base.device_type = type;
+ 	sd->base.binding_profiles = binding_profiles;
+diff --git a/src/xrt/drivers/simulated/simulated_hmd.c b/src/xrt/drivers/simulated/simulated_hmd.c
+index b0b7dc0cee..0e3a314d01 100644
+--- a/src/xrt/drivers/simulated/simulated_hmd.c
++++ b/src/xrt/drivers/simulated/simulated_hmd.c
+@@ -200,7 +200,7 @@ simulated_hmd_create(enum simulated_movement movement, const struct xrt_pose *ce
+ 	hmd->base.destroy = simulated_hmd_destroy;
+ 	hmd->base.name = XRT_DEVICE_GENERIC_HMD;
+ 	hmd->base.device_type = XRT_DEVICE_TYPE_HMD;
+-	hmd->base.ref_space_usage_supported = true;
++	hmd->base.supported.ref_space_usage = true;
+ 	hmd->pose.orientation.w = 1.0f; // All other values set to zero.
+ 	hmd->center = *center;
+ 	hmd->created_ns = os_monotonic_get_ns();
+diff --git a/src/xrt/drivers/steamvr_lh/device.cpp b/src/xrt/drivers/steamvr_lh/device.cpp
+index 6d3afe90fd..44dc1543fb 100644
+--- a/src/xrt/drivers/steamvr_lh/device.cpp
++++ b/src/xrt/drivers/steamvr_lh/device.cpp
+@@ -202,12 +202,12 @@ Device::Device(const DeviceBuilder &builder) : xrt_device({}), ctx(builder.ctx),
+ 	std::strncpy(this->serial, builder.serial, XRT_DEVICE_NAME_LEN - 1);
+ 	this->serial[XRT_DEVICE_NAME_LEN - 1] = 0;
+ 	this->tracking_origin = ctx.get();
+-	this->orientation_tracking_supported = true;
+-	this->position_tracking_supported = true;
+-	this->hand_tracking_supported = true;
+-	this->force_feedback_supported = false;
+-	this->form_factor_check_supported = false;
+-	this->battery_status_supported = true;
++	this->supported.orientation_tracking = true;
++	this->supported.position_tracking = true;
++	this->supported.hand_tracking = true;
++	this->supported.force_feedback = false;
++	this->supported.form_factor_check = false;
++	this->supported.battery_status = true;
+ 
+ 	this->xrt_device::update_inputs = &device_bouncer<Device, &Device::update_inputs, xrt_result_t>;
+ #define SETUP_MEMBER_FUNC(name) this->xrt_device::name = &device_bouncer<Device, &Device::name>
+diff --git a/src/xrt/drivers/survive/survive_driver.c b/src/xrt/drivers/survive/survive_driver.c
+index 232dec7449..35982885ff 100644
+--- a/src/xrt/drivers/survive/survive_driver.c
++++ b/src/xrt/drivers/survive/survive_driver.c
+@@ -987,10 +987,10 @@ _create_hmd_device(struct survive_system *sys, const struct SurviveSimpleObject
+ 	survive->base.compute_distortion = compute_distortion;
+ 	survive->base.get_battery_status = survive_device_get_battery_status;
+ 
+-	survive->base.orientation_tracking_supported = true;
+-	survive->base.position_tracking_supported = true;
++	survive->base.supported.orientation_tracking = true;
++	survive->base.supported.position_tracking = true;
++	survive->base.supported.battery_status = true;
+ 	survive->base.device_type = XRT_DEVICE_TYPE_HMD;
+-	survive->base.battery_status_supported = true;
+ 
+ 	survive->base.inputs[0].name = XRT_INPUT_GENERIC_HEAD_POSE;
+ 
+@@ -1141,7 +1141,7 @@ _create_controller_device(struct survive_system *sys,
+ 		survive->base.binding_profile_count = vive_binding_profiles_index_count;
+ 
+ 		survive->base.get_hand_tracking = survive_controller_get_hand_tracking;
+-		survive->base.hand_tracking_supported = !debug_get_bool_option_survive_disable_hand_emulation();
++		survive->base.supported.hand_tracking = !debug_get_bool_option_survive_disable_hand_emulation();
+ 
+ 	} else if (survive->ctrl.config.variant == CONTROLLER_VIVE_WAND) {
+ 		survive->base.name = XRT_DEVICE_VIVE_WAND;
+@@ -1188,9 +1188,9 @@ _create_controller_device(struct survive_system *sys,
+ 		survive->base.inputs[VIVE_TRACKER_POSE].name = XRT_INPUT_GENERIC_TRACKER_POSE;
+ 	}
+ 
+-	survive->base.orientation_tracking_supported = true;
+-	survive->base.position_tracking_supported = true;
+-	survive->base.battery_status_supported = true;
++	survive->base.supported.orientation_tracking = true;
++	survive->base.supported.position_tracking = true;
++	survive->base.supported.battery_status = true;
+ 
+ 	survive->last_inputs = U_TYPED_ARRAY_CALLOC(struct xrt_input, survive->base.input_count);
+ 	survive->num_last_inputs = survive->base.input_count;
+diff --git a/src/xrt/drivers/twrap/twrap_slam.c b/src/xrt/drivers/twrap/twrap_slam.c
+index d66291aedc..7c8801fa86 100644
+--- a/src/xrt/drivers/twrap/twrap_slam.c
++++ b/src/xrt/drivers/twrap/twrap_slam.c
+@@ -178,8 +178,8 @@ twrap_slam_create_device(struct xrt_frame_context *xfctx,
+ 	dx->base.name = name;
+ 	dx->base.tracking_origin->type = XRT_TRACKING_TYPE_OTHER;
+ 	dx->base.inputs[0].name = XRT_INPUT_GENERIC_TRACKER_POSE;
+-	dx->base.orientation_tracking_supported = true;
+-	dx->base.position_tracking_supported = true;
++	dx->base.supported.orientation_tracking = true;
++	dx->base.supported.position_tracking = true;
+ 	dx->base.device_type = XRT_DEVICE_TYPE_GENERIC_TRACKER;
+ 
+ 
+diff --git a/src/xrt/drivers/ultraleap_v2/ulv2_driver.cpp b/src/xrt/drivers/ultraleap_v2/ulv2_driver.cpp
+index 9b6e273af7..fec989ae65 100644
+--- a/src/xrt/drivers/ultraleap_v2/ulv2_driver.cpp
++++ b/src/xrt/drivers/ultraleap_v2/ulv2_driver.cpp
+@@ -404,7 +404,7 @@ ulv2_create_device(struct xrt_device **out_xdev)
+ 	ulv2d->base.name = XRT_DEVICE_HAND_TRACKER;
+ 
+ 	ulv2d->base.device_type = XRT_DEVICE_TYPE_HAND_TRACKER;
+-	ulv2d->base.hand_tracking_supported = true;
++	ulv2d->base.supported.hand_tracking = true;
+ 
+ 	u_var_add_root(ulv2d, "Leap Motion v2 driver", true);
+ 	u_var_add_ro_text(ulv2d, ulv2d->base.str, "Name");
+diff --git a/src/xrt/drivers/ultraleap_v5/ulv5_driver.cpp b/src/xrt/drivers/ultraleap_v5/ulv5_driver.cpp
+index 73e28bc733..8e42916e46 100644
+--- a/src/xrt/drivers/ultraleap_v5/ulv5_driver.cpp
++++ b/src/xrt/drivers/ultraleap_v5/ulv5_driver.cpp
+@@ -321,7 +321,7 @@ ulv5_create_device(struct xrt_device **out_xdev)
+ 	ulv5d->base.name = XRT_DEVICE_HAND_TRACKER;
+ 
+ 	ulv5d->base.device_type = XRT_DEVICE_TYPE_HAND_TRACKER;
+-	ulv5d->base.hand_tracking_supported = true;
++	ulv5d->base.supported.hand_tracking = true;
+ 
+ 	u_var_add_root(ulv5d, "Leap Motion v5 driver", true);
+ 	u_var_add_ro_text(ulv5d, ulv5d->base.str, "Name");
+diff --git a/src/xrt/drivers/vive/vive_controller.c b/src/xrt/drivers/vive/vive_controller.c
+index fdb0d21621..023d943ceb 100644
+--- a/src/xrt/drivers/vive/vive_controller.c
++++ b/src/xrt/drivers/vive/vive_controller.c
+@@ -1224,9 +1224,9 @@ vive_controller_create(struct os_hid_device *controller_hid, enum watchman_gen w
+ 	}
+ 
+ 	VIVE_DEBUG(d, "Opened vive controller!\n");
+-	d->base.orientation_tracking_supported = true;
+-	d->base.position_tracking_supported = false;
+-	d->base.hand_tracking_supported =
++	d->base.supported.orientation_tracking = true;
++	d->base.supported.position_tracking = false;
++	d->base.supported.hand_tracking =
+ 	    d->config.variant == CONTROLLER_INDEX_LEFT || d->config.variant == CONTROLLER_INDEX_RIGHT;
+ 
+ 	vive_controller_setup_ui(d);
+diff --git a/src/xrt/drivers/vive/vive_device.c b/src/xrt/drivers/vive/vive_device.c
+index 9c3a70dfed..cb31c0540c 100644
+--- a/src/xrt/drivers/vive/vive_device.c
++++ b/src/xrt/drivers/vive/vive_device.c
+@@ -997,9 +997,9 @@ vive_set_trackers_status(struct vive_device *d, struct vive_tracking_status stat
+ 	bool hand_supported = status.hand_supported;
+ 	bool hand_enabled = status.hand_enabled;
+ 
+-	d->base.orientation_tracking_supported = dof3_enabled || slam_enabled;
+-	d->base.position_tracking_supported = slam_enabled;
+-	d->base.hand_tracking_supported = false; // this is handled by a separate hand device
++	d->base.supported.orientation_tracking = dof3_enabled || slam_enabled;
++	d->base.supported.position_tracking = slam_enabled;
++	d->base.supported.hand_tracking = false; // this is handled by a separate hand device
+ 	d->base.device_type = XRT_DEVICE_TYPE_HMD;
+ 
+ 	d->tracking.slam_enabled = slam_enabled;
+diff --git a/src/xrt/drivers/wmr/wmr_controller_base.c b/src/xrt/drivers/wmr/wmr_controller_base.c
+index 164cbfea79..c00d3cd310 100644
+--- a/src/xrt/drivers/wmr/wmr_controller_base.c
++++ b/src/xrt/drivers/wmr/wmr_controller_base.c
+@@ -548,9 +548,9 @@ wmr_controller_base_init(struct wmr_controller_base *wcb,
+ 
+ 	wcb->base.name = XRT_DEVICE_WMR_CONTROLLER;
+ 	wcb->base.device_type = controller_type;
+-	wcb->base.orientation_tracking_supported = true;
+-	wcb->base.position_tracking_supported = false;
+-	wcb->base.hand_tracking_supported = false;
++	wcb->base.supported.orientation_tracking = true;
++	wcb->base.supported.position_tracking = false;
++	wcb->base.supported.hand_tracking = false;
+ 
+ 	m_imu_3dof_init(&wcb->fusion, M_IMU_3DOF_USE_GRAVITY_DUR_20MS);
+ 
+diff --git a/src/xrt/drivers/wmr/wmr_hmd.c b/src/xrt/drivers/wmr/wmr_hmd.c
+index 1ea567cac5..e936b2ae47 100644
+--- a/src/xrt/drivers/wmr/wmr_hmd.c
++++ b/src/xrt/drivers/wmr/wmr_hmd.c
+@@ -1839,9 +1839,9 @@ wmr_hmd_setup_trackers(struct wmr_hmd *wh, struct xrt_slam_sinks *out_sinks, str
+ #endif
+ 	bool hand_enabled = hand_supported && hand_wanted;
+ 
+-	wh->base.orientation_tracking_supported = dof3_enabled || slam_enabled;
+-	wh->base.position_tracking_supported = slam_enabled;
+-	wh->base.hand_tracking_supported = false; // out_handtracker will handle it
++	wh->base.supported.orientation_tracking = dof3_enabled || slam_enabled;
++	wh->base.supported.position_tracking = slam_enabled;
++	wh->base.supported.hand_tracking = false; // out_handtracker will handle it
+ 
+ 	wh->tracking.slam_enabled = slam_enabled;
+ 	wh->tracking.hand_enabled = hand_enabled;
+diff --git a/src/xrt/drivers/xreal_air/xreal_air_hmd.c b/src/xrt/drivers/xreal_air/xreal_air_hmd.c
+index 2e32a2521c..dc9a3134a0 100644
+--- a/src/xrt/drivers/xreal_air/xreal_air_hmd.c
++++ b/src/xrt/drivers/xreal_air/xreal_air_hmd.c
+@@ -1120,8 +1120,8 @@ xreal_air_hmd_create_device(struct os_hid_device *sensor_device,
+ 	hmd->base.name = XRT_DEVICE_GENERIC_HMD;
+ 	hmd->base.device_type = XRT_DEVICE_TYPE_HMD;
+ 	hmd->base.inputs[0].name = XRT_INPUT_GENERIC_HEAD_POSE;
+-	hmd->base.orientation_tracking_supported = true;
+-	hmd->base.position_tracking_supported = false;
++	hmd->base.supported.orientation_tracking = true;
++	hmd->base.supported.position_tracking = false;
+ 
+ 	// Set up display details refresh rate
+ 	hmd->base.hmd->screens[0].nominal_frame_interval_ns = time_s_to_ns(1.0f / 60.0f);
+diff --git a/src/xrt/include/xrt/xrt_device.h b/src/xrt/include/xrt/xrt_device.h
+index 2cf0894554..27db485984 100644
+--- a/src/xrt/include/xrt/xrt_device.h
++++ b/src/xrt/include/xrt/xrt_device.h
+@@ -1,4 +1,5 @@
+ // Copyright 2019-2024, Collabora, Ltd.
++// Copyright 2024-2025, NVIDIA CORPORATION.
+ // SPDX-License-Identifier: BSL-1.0
+ /*!
+  * @file
+@@ -243,6 +244,32 @@ struct xrt_output_limits
+ 	float haptic_pcm_sample_rate;
+ };
+ 
++/*!
++ * Static data of supported features of the @ref xrt_device this struct sits on.
++ *
++ * This struct needs to always be a piece of data as it sits inside of the
++ * shared memory area in the IPC layer, so no pointers please.
++ *
++ * @ingroup xrt_iface
++ */
++struct xrt_device_supported
++{
++	bool orientation_tracking;
++	bool position_tracking;
++	bool hand_tracking;
++	bool eye_gaze;
++	bool force_feedback;
++	bool ref_space_usage;
++	bool form_factor_check;
++	bool stage;
++	bool face_tracking;
++	bool body_tracking;
++	bool battery_status;
++
++	bool planes;
++	enum xrt_plane_detection_capability_flags_ext plane_capability_flags;
++};
++
+ /*!
+  * @interface xrt_device
+  *
+@@ -283,19 +310,9 @@ struct xrt_device
+ 	//! Array of output structs.
+ 	struct xrt_output *outputs;
+ 
+-	bool orientation_tracking_supported;
+-	bool position_tracking_supported;
+-	bool hand_tracking_supported;
+-	bool eye_gaze_supported;
+-	bool force_feedback_supported;
+-	bool ref_space_usage_supported;
+-	bool form_factor_check_supported;
+-	bool stage_supported;
+-	bool face_tracking_supported;
+-	bool body_tracking_supported;
+-	bool battery_status_supported;
+-	bool planes_supported;
+-	enum xrt_plane_detection_capability_flags_ext plane_capability_flags;
++	//! What features/functions/things does this device supports?
++	struct xrt_device_supported supported;
++
+ 
+ 	/*
+ 	 *
+diff --git a/src/xrt/ipc/client/ipc_client_device.c b/src/xrt/ipc/client/ipc_client_device.c
+index ddda759192..e4b2c142ce 100644
+--- a/src/xrt/ipc/client/ipc_client_device.c
++++ b/src/xrt/ipc/client/ipc_client_device.c
+@@ -322,17 +322,9 @@ ipc_client_device_create(struct ipc_connection *ipc_c, struct xrt_tracking_origi
+ 	u_var_add_root(icd, icd->base.str, true);
+ 	u_var_add_ro_u32(icd, &icd->device_id, "device_id");
+ 
+-	icd->base.orientation_tracking_supported = isdev->orientation_tracking_supported;
+-	icd->base.position_tracking_supported = isdev->position_tracking_supported;
+-	icd->base.hand_tracking_supported = isdev->hand_tracking_supported;
+-	icd->base.eye_gaze_supported = isdev->eye_gaze_supported;
+-	icd->base.face_tracking_supported = isdev->face_tracking_supported;
+-	icd->base.body_tracking_supported = isdev->body_tracking_supported;
+-	icd->base.force_feedback_supported = isdev->force_feedback_supported;
+-	icd->base.stage_supported = isdev->stage_supported;
+-	icd->base.planes_supported = isdev->planes_supported;
+-	icd->base.plane_capability_flags = isdev->plane_capability_flags;
+-
++	// Copy information.
+ 	icd->base.device_type = isdev->device_type;
++	icd->base.supported = isdev->supported;
++
+ 	return &icd->base;
+ }
+diff --git a/src/xrt/ipc/client/ipc_client_hmd.c b/src/xrt/ipc/client/ipc_client_hmd.c
+index 5aca736443..ab0844f9e3 100644
+--- a/src/xrt/ipc/client/ipc_client_hmd.c
++++ b/src/xrt/ipc/client/ipc_client_hmd.c
+@@ -541,19 +541,9 @@ ipc_client_hmd_create(struct ipc_connection *ipc_c, struct xrt_tracking_origin *
+ 	u_var_add_root(ich, ich->base.str, true);
+ 	u_var_add_ro_u32(ich, &ich->device_id, "device_id");
+ 
+-	ich->base.orientation_tracking_supported = isdev->orientation_tracking_supported;
+-	ich->base.position_tracking_supported = isdev->position_tracking_supported;
++	// Copy information.
+ 	ich->base.device_type = isdev->device_type;
+-	ich->base.hand_tracking_supported = isdev->hand_tracking_supported;
+-	ich->base.eye_gaze_supported = isdev->eye_gaze_supported;
+-	ich->base.face_tracking_supported = isdev->face_tracking_supported;
+-	ich->base.body_tracking_supported = isdev->body_tracking_supported;
+-	ich->base.force_feedback_supported = isdev->force_feedback_supported;
+-	ich->base.form_factor_check_supported = isdev->form_factor_check_supported;
+-	ich->base.stage_supported = isdev->stage_supported;
+-	ich->base.battery_status_supported = isdev->battery_status_supported;
+-	ich->base.planes_supported = isdev->planes_supported;
+-	ich->base.plane_capability_flags = isdev->plane_capability_flags;
++	ich->base.supported = isdev->supported;
+ 
+ 	return &ich->base;
+ }
+diff --git a/src/xrt/ipc/server/ipc_server_process.c b/src/xrt/ipc/server/ipc_server_process.c
+index 2fe7285bc2..15401bf74d 100644
+--- a/src/xrt/ipc/server/ipc_server_process.c
++++ b/src/xrt/ipc/server/ipc_server_process.c
+@@ -348,19 +348,9 @@ init_shm(struct ipc_server *s)
+ 		memcpy(isdev->str, xdev->str, sizeof(isdev->str));
+ 		memcpy(isdev->serial, xdev->serial, sizeof(isdev->serial));
+ 
+-		isdev->orientation_tracking_supported = xdev->orientation_tracking_supported;
+-		isdev->position_tracking_supported = xdev->position_tracking_supported;
++		// Copy information.
+ 		isdev->device_type = xdev->device_type;
+-		isdev->hand_tracking_supported = xdev->hand_tracking_supported;
+-		isdev->force_feedback_supported = xdev->force_feedback_supported;
+-		isdev->form_factor_check_supported = xdev->form_factor_check_supported;
+-		isdev->eye_gaze_supported = xdev->eye_gaze_supported;
+-		isdev->face_tracking_supported = xdev->face_tracking_supported;
+-		isdev->body_tracking_supported = xdev->body_tracking_supported;
+-		isdev->stage_supported = xdev->stage_supported;
+-		isdev->battery_status_supported = xdev->battery_status_supported;
+-		isdev->planes_supported = xdev->planes_supported;
+-		isdev->plane_capability_flags = xdev->plane_capability_flags;
++		isdev->supported = xdev->supported;
+ 
+ 		// Setup the tracking origin.
+ 		isdev->tracking_origin_index = (uint32_t)-1;
+diff --git a/src/xrt/ipc/shared/ipc_protocol.h b/src/xrt/ipc/shared/ipc_protocol.h
+index 7f65853d09..774a530697 100644
+--- a/src/xrt/ipc/shared/ipc_protocol.h
++++ b/src/xrt/ipc/shared/ipc_protocol.h
+@@ -135,18 +135,8 @@ struct ipc_shared_device
+ 	//! 'Offset' into the array of outputs where the outputs starts.
+ 	uint32_t first_output_index;
+ 
+-	bool orientation_tracking_supported;
+-	bool position_tracking_supported;
+-	bool hand_tracking_supported;
+-	bool eye_gaze_supported;
+-	bool face_tracking_supported;
+-	bool body_tracking_supported;
+-	bool force_feedback_supported;
+-	bool form_factor_check_supported;
+-	bool stage_supported;
+-	bool battery_status_supported;
+-	bool planes_supported;
+-	enum xrt_plane_detection_capability_flags_ext plane_capability_flags;
++	//! The supported fields.
++	struct xrt_device_supported supported;
+ };
+ 
+ static_assert(sizeof(struct ipc_shared_device) == 564,
+diff --git a/src/xrt/state_trackers/oxr/oxr_api_session.c b/src/xrt/state_trackers/oxr/oxr_api_session.c
+index df8ec96b70..b3dac8c8a2 100644
+--- a/src/xrt/state_trackers/oxr/oxr_api_session.c
++++ b/src/xrt/state_trackers/oxr/oxr_api_session.c
+@@ -440,7 +440,7 @@ oxr_hand_tracker_create(struct oxr_logger *log,
+ 	}
+ 
+ 	// Find the correct input on the device.
+-	if (xdev != NULL && xdev->hand_tracking_supported) {
++	if (xdev != NULL && xdev->supported.hand_tracking) {
+ 		for (uint32_t j = 0; j < xdev->input_count; j++) {
+ 			struct xrt_input *input = &xdev->inputs[j];
+ 
+@@ -826,7 +826,7 @@ oxr_xrCreatePlaneDetectorEXT(XrSession session,
+ 
+ 	//! @todo support planes on other devices
+ 	struct xrt_device *xdev = GET_XDEV_BY_ROLE(sess->sys, head);
+-	if (!xdev->planes_supported) {
++	if (!xdev->supported.planes) {
+ 		return XR_ERROR_FEATURE_UNSUPPORTED;
+ 	}
+ 
+@@ -885,7 +885,7 @@ oxr_xrBeginPlaneDetectionEXT(XrPlaneDetectorEXT planeDetector, const XrPlaneDete
+ 		return oxr_error(&log, XR_ERROR_TIME_INVALID, "Time %" PRId64 " invalid", beginInfo->time);
+ 	}
+ 
+-	if (!pd->xdev->planes_supported) {
++	if (!pd->xdev->supported.planes) {
+ 		return XR_ERROR_FEATURE_UNSUPPORTED;
+ 	}
+ 
+@@ -1038,7 +1038,7 @@ oxr_xrGetPlaneDetectionsEXT(XrPlaneDetectorEXT planeDetector,
+ 		return oxr_error(&log, XR_ERROR_TIME_INVALID, "Time %" PRId64 " invalid", info->time);
+ 	}
+ 
+-	if (!pd->xdev->planes_supported) {
++	if (!pd->xdev->supported.planes) {
+ 		return XR_ERROR_FEATURE_UNSUPPORTED;
+ 	}
+ 
+diff --git a/src/xrt/state_trackers/oxr/oxr_body_tracking.c b/src/xrt/state_trackers/oxr/oxr_body_tracking.c
+index ff345a28bb..bf0bb5eb24 100644
+--- a/src/xrt/state_trackers/oxr/oxr_body_tracking.c
++++ b/src/xrt/state_trackers/oxr/oxr_body_tracking.c
+@@ -57,7 +57,7 @@ oxr_create_body_tracker_fb(struct oxr_logger *log,
+ 	}
+ 
+ 	struct xrt_device *xdev = GET_XDEV_BY_ROLE(sess->sys, body);
+-	if (xdev == NULL || !xdev->body_tracking_supported) {
++	if (xdev == NULL || !xdev->supported.body_tracking) {
+ 		return oxr_error(log, XR_ERROR_FEATURE_UNSUPPORTED, "No device found for body tracking role");
+ 	}
+ 
+@@ -79,7 +79,7 @@ oxr_get_body_skeleton_fb(struct oxr_logger *log,
+                          XrBodySkeletonFB *skeleton)
+ {
+ 
+-	if (body_tracker_fb->xdev == NULL || !body_tracker_fb->xdev->body_tracking_supported) {
++	if (body_tracker_fb->xdev == NULL || !body_tracker_fb->xdev->supported.body_tracking) {
+ 		return oxr_error(log, XR_ERROR_FUNCTION_UNSUPPORTED,
+ 		                 "Device not found or does not support body tracking.");
+ 	}
+@@ -113,7 +113,7 @@ oxr_locate_body_joints_fb(struct oxr_logger *log,
+                           const XrBodyJointsLocateInfoFB *locateInfo,
+                           XrBodyJointLocationsFB *locations)
+ {
+-	if (body_tracker_fb->xdev == NULL || !body_tracker_fb->xdev->body_tracking_supported) {
++	if (body_tracker_fb->xdev == NULL || !body_tracker_fb->xdev->supported.body_tracking) {
+ 		return oxr_error(log, XR_ERROR_FUNCTION_UNSUPPORTED,
+ 		                 "Device not found or does not support body tracking.");
+ 	}
+diff --git a/src/xrt/state_trackers/oxr/oxr_face_tracking.c b/src/xrt/state_trackers/oxr/oxr_face_tracking.c
+index 64806037c8..a9855b930d 100644
+--- a/src/xrt/state_trackers/oxr/oxr_face_tracking.c
++++ b/src/xrt/state_trackers/oxr/oxr_face_tracking.c
+@@ -64,7 +64,7 @@ oxr_facial_tracker_htc_create(struct oxr_logger *log,
+ 		return oxr_error(log, XR_ERROR_FEATURE_UNSUPPORTED, "No device found for face tracking role");
+ 	}
+ 
+-	if (!xdev->face_tracking_supported) {
++	if (!xdev->supported.face_tracking) {
+ 		return oxr_error(log, XR_ERROR_FEATURE_UNSUPPORTED, "Device does not support HTC facial tracking");
+ 	}
+ 
+diff --git a/src/xrt/state_trackers/oxr/oxr_face_tracking2_fb.c b/src/xrt/state_trackers/oxr/oxr_face_tracking2_fb.c
+index ece32f4292..fb0088cb9c 100644
+--- a/src/xrt/state_trackers/oxr/oxr_face_tracking2_fb.c
++++ b/src/xrt/state_trackers/oxr/oxr_face_tracking2_fb.c
+@@ -40,7 +40,7 @@ oxr_face_tracker2_fb_create(struct oxr_logger *log,
+ 		return oxr_error(log, XR_ERROR_FEATURE_UNSUPPORTED, "No device found for face tracking role");
+ 	}
+ 
+-	if (!xdev->face_tracking_supported || xdev->get_face_tracking == NULL) {
++	if (!xdev->supported.face_tracking || xdev->get_face_tracking == NULL) {
+ 		return oxr_error(log, XR_ERROR_FEATURE_UNSUPPORTED, "Device does not support FB2 face tracking");
+ 	}
+ 
+diff --git a/src/xrt/state_trackers/oxr/oxr_system.c b/src/xrt/state_trackers/oxr/oxr_system.c
+index 072a532a65..f8306d69b4 100644
+--- a/src/xrt/state_trackers/oxr/oxr_system.c
++++ b/src/xrt/state_trackers/oxr/oxr_system.c
+@@ -70,7 +70,7 @@ oxr_system_select(struct oxr_logger *log,
+ 	}
+ 
+ 	struct xrt_device *xdev = GET_XDEV_BY_ROLE(selected, head);
+-	if (xdev->form_factor_check_supported &&
++	if (xdev->supported.form_factor_check &&
+ 	    !xrt_device_is_form_factor_available(xdev, convert_form_factor(form_factor))) {
+ 		return oxr_error(log, XR_ERROR_FORM_FACTOR_UNAVAILABLE, "request form factor %i is unavailable now",
+ 		                 form_factor);
+@@ -259,8 +259,8 @@ oxr_system_get_hand_tracking_support(struct oxr_logger *log, struct oxr_instance
+ 	struct xrt_device *ht_left = GET_XDEV_BY_ROLE(sys, hand_tracking_left);
+ 	struct xrt_device *ht_right = GET_XDEV_BY_ROLE(sys, hand_tracking_right);
+ 
+-	bool left_supported = ht_left && ht_left->hand_tracking_supported;
+-	bool right_supported = ht_right && ht_right->hand_tracking_supported;
++	bool left_supported = ht_left && ht_left->supported.hand_tracking;
++	bool right_supported = ht_right && ht_right->supported.hand_tracking;
+ 
+ 	return left_supported || right_supported;
+ }
+@@ -271,7 +271,7 @@ oxr_system_get_eye_gaze_support(struct oxr_logger *log, struct oxr_instance *ins
+ 	struct oxr_system *sys = &inst->system;
+ 	struct xrt_device *eyes = GET_XDEV_BY_ROLE(sys, eyes);
+ 
+-	return eyes && eyes->eye_gaze_supported;
++	return eyes && eyes->supported.eye_gaze;
+ }
+ 
+ bool
+@@ -281,8 +281,8 @@ oxr_system_get_force_feedback_support(struct oxr_logger *log, struct oxr_instanc
+ 	struct xrt_device *ffb_left = GET_XDEV_BY_ROLE(sys, hand_tracking_left);
+ 	struct xrt_device *ffb_right = GET_XDEV_BY_ROLE(sys, hand_tracking_right);
+ 
+-	bool left_supported = ffb_left && ffb_left->force_feedback_supported;
+-	bool right_supported = ffb_right && ffb_right->force_feedback_supported;
++	bool left_supported = ffb_left && ffb_left->supported.force_feedback;
++	bool right_supported = ffb_right && ffb_right->supported.force_feedback;
+ 
+ 	return left_supported || right_supported;
+ }
+@@ -301,7 +301,7 @@ oxr_system_get_face_tracking_htc_support(struct oxr_logger *log,
+ 	if (supports_lip)
+ 		*supports_lip = false;
+ 
+-	if (face_xdev == NULL || !face_xdev->face_tracking_supported || face_xdev->inputs == NULL) {
++	if (face_xdev == NULL || !face_xdev->supported.face_tracking || face_xdev->inputs == NULL) {
+ 		return;
+ 	}
+ 
+@@ -331,7 +331,7 @@ oxr_system_get_face_tracking2_fb_support(struct oxr_logger *log,
+ 	struct oxr_system *sys = &inst->system;
+ 	struct xrt_device *face_xdev = GET_XDEV_BY_ROLE(sys, face);
+ 
+-	if (face_xdev == NULL || !face_xdev->face_tracking_supported || face_xdev->inputs == NULL) {
++	if (face_xdev == NULL || !face_xdev->supported.face_tracking || face_xdev->inputs == NULL) {
+ 		return;
+ 	}
+ 
+@@ -353,7 +353,7 @@ oxr_system_get_body_tracking_support(struct oxr_logger *log,
+ {
+ 	struct oxr_system *sys = &inst->system;
+ 	const struct xrt_device *body = GET_XDEV_BY_ROLE(sys, body);
+-	if (body == NULL || !body->body_tracking_supported || body->inputs == NULL) {
++	if (body == NULL || !body->supported.body_tracking || body->inputs == NULL) {
+ 		return false;
+ 	}
+ 
+@@ -392,8 +392,8 @@ oxr_system_get_properties(struct oxr_logger *log, struct oxr_system *sys, XrSyst
+ 	}
+ 	properties->graphicsProperties.maxSwapchainImageWidth = 1024 * 16;
+ 	properties->graphicsProperties.maxSwapchainImageHeight = 1024 * 16;
+-	properties->trackingProperties.orientationTracking = xdev->orientation_tracking_supported;
+-	properties->trackingProperties.positionTracking = xdev->position_tracking_supported;
++	properties->trackingProperties.orientationTracking = xdev->supported.orientation_tracking;
++	properties->trackingProperties.positionTracking = xdev->supported.position_tracking;
+ 
+ #ifdef OXR_HAVE_EXT_hand_tracking
+ 	XrSystemHandTrackingPropertiesEXT *hand_tracking_props = NULL;
+@@ -518,7 +518,7 @@ oxr_system_get_properties(struct oxr_logger *log, struct oxr_system *sys, XrSyst
+ 	if (plane_detection_props) {
+ 		// for now these are mapped 1:1
+ 		plane_detection_props->supportedFeatures =
+-		    (XrPlaneDetectionCapabilityFlagsEXT)xdev->plane_capability_flags;
++		    (XrPlaneDetectionCapabilityFlagsEXT)xdev->supported.plane_capability_flags;
+ 	}
+ #endif // OXR_HAVE_EXT_plane_detection
+ 
+diff --git a/src/xrt/state_trackers/steamvr_drv/ovrd_driver.cpp b/src/xrt/state_trackers/steamvr_drv/ovrd_driver.cpp
+index aa0ec8ab9b..82f7e9e72e 100644
+--- a/src/xrt/state_trackers/steamvr_drv/ovrd_driver.cpp
++++ b/src/xrt/state_trackers/steamvr_drv/ovrd_driver.cpp
+@@ -562,7 +562,7 @@ public:
+ 
+ 			AddControl("/input/trackpad/y", XRT_INPUT_INDEX_TRACKPAD, &y);
+ 
+-			if (m_xdev->hand_tracking_supported) {
++			if (m_xdev->supported.hand_tracking) {
+ 				ovrd_log("Enabling skeletal input as this device supports it");
+ 
+ 				// skeletal input compatibility with games is a bit funky with any controllers
+@@ -763,7 +763,7 @@ public:
+ 		m_pose.poseIsValid = false;
+ 		m_pose.deviceIsConnected = true;
+ 		m_pose.result = vr::TrackingResult_Uninitialized;
+-		m_pose.willDriftInYaw = !m_xdev->position_tracking_supported;
++		m_pose.willDriftInYaw = !m_xdev->supported.position_tracking;
+ 
+ 		if (m_emulate_index_controller) {
+ 			m_input_profile = std::string("{indexcontroller}/input/index_controller_profile.json");
+@@ -965,7 +965,7 @@ public:
+ 			}
+ 		}
+ 
+-		if (m_xdev->hand_tracking_supported && m_skeletal_input_control.control_handle) {
++		if (m_xdev->supported.hand_tracking && m_skeletal_input_control.control_handle) {
+ 			vr::VRBoneTransform_t bone_transforms[OPENVR_BONE_COUNT];
+ 
+ 			timepoint_ns now_ns = os_monotonic_get_ns();
+@@ -1295,9 +1295,9 @@ CDeviceDriver_Monado::GetPose()
+ 
+ 	    .result = vr::TrackingResult_Running_OK,
+ 	    .poseIsValid = (rel.relation_flags & XRT_SPACE_RELATION_ORIENTATION_VALID_BIT) != 0,
+-	    .willDriftInYaw = !m_xdev->position_tracking_supported,
++	    .willDriftInYaw = !m_xdev->supported.position_tracking,
+ 	    //! @todo: Monado head model?
+-	    .shouldApplyHeadModel = !m_xdev->position_tracking_supported,
++	    .shouldApplyHeadModel = !m_xdev->supported.position_tracking,
+ 	    .deviceIsConnected = true,
+ 	};
+ 	apply_pose(&rel, &t);
+diff --git a/src/xrt/targets/common/target_builder_simulated.c b/src/xrt/targets/common/target_builder_simulated.c
+index 8c2709e671..7cb5913d5e 100644
+--- a/src/xrt/targets/common/target_builder_simulated.c
++++ b/src/xrt/targets/common/target_builder_simulated.c
+@@ -113,8 +113,8 @@ simulated_open_system_impl(struct xrt_builder *xb,
+ 
+ 	// Make the objects be tracked in space.
+ 	//! @todo Make these be a option to the hmd create function, or just make it be there from the start.
+-	head->orientation_tracking_supported = true;
+-	head->position_tracking_supported = true;
++	head->supported.orientation_tracking = true;
++	head->supported.position_tracking = true;
+ 	//! @todo Create a shared tracking origin on the system devices struct instead.
+ 	head->tracking_origin->type = XRT_TRACKING_TYPE_OTHER; // Just anything other then none.
+ 
+diff --git a/src/xrt/targets/libmonado/monado.c b/src/xrt/targets/libmonado/monado.c
+index 5d87735d6c..c974cbd56b 100644
+--- a/src/xrt/targets/libmonado/monado.c
++++ b/src/xrt/targets/libmonado/monado.c
+@@ -309,8 +309,8 @@ mnd_root_get_device_info_bool(mnd_root_t *root, uint32_t device_index, mnd_prope
+ 	const struct ipc_shared_device *shared_device = &root->ipc_c.ism->isdevs[device_index];
+ 
+ 	switch (prop) {
+-	case MND_PROPERTY_SUPPORTS_POSITION_BOOL: *out_bool = shared_device->position_tracking_supported; break;
+-	case MND_PROPERTY_SUPPORTS_ORIENTATION_BOOL: *out_bool = shared_device->orientation_tracking_supported; break;
++	case MND_PROPERTY_SUPPORTS_POSITION_BOOL: *out_bool = shared_device->supported.position_tracking; break;
++	case MND_PROPERTY_SUPPORTS_ORIENTATION_BOOL: *out_bool = shared_device->supported.orientation_tracking; break;
+ 	default: PE("Is not a valid boolean property (%u)", prop); return MND_ERROR_INVALID_PROPERTY;
+ 	}
+ 
+@@ -574,7 +574,7 @@ mnd_root_get_device_battery_status(
+ 
+ 	const struct ipc_shared_device *shared_device = &root->ipc_c.ism->isdevs[device_index];
+ 
+-	if (!shared_device->battery_status_supported) {
++	if (!shared_device->supported.battery_status) {
+ 		return MND_ERROR_OPERATION_FAILED;
+ 	}
+ 
+-- 
+GitLab
+

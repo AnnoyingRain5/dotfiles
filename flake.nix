@@ -40,7 +40,7 @@
           modules = [
             ./hosts/Blaze/configuration.nix
             nur.modules.nixos.default
-            flatpaks.nixosModules.declarative-flatpak
+            flatpaks.nixosModule
             nixpkgs-xr.nixosModules.nixpkgs-xr
             home-manager.nixosModules.home-manager
             {
@@ -62,7 +62,7 @@
           modules = [
             ./hosts/Dragon/configuration.nix
             nur.modules.nixos.default
-            flatpaks.nixosModules.declarative-flatpak
+            flatpaks.nixosModule
             nixpkgs-xr.nixosModules.nixpkgs-xr
             home-manager.nixosModules.home-manager
             {

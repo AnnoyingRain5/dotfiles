@@ -9,19 +9,11 @@
   pkgs,
   lib,
   inputs,
-  nixpkgs-vkl,
-  stardust,
   ...
 }:
 
 {
-  imports = [ ./home.nix ];
-
-  nixpkgs.overlays = [
-    #(self: super: {
-    #  monado-vulkan-layers = nixpkgs-vkl.monado-vulkan-layers;
-    #})
-  ];
+  imports = [ ./home.nix ./vr.nix ];
 
   nix.settings = {
     substituters = [ "https://nix-community.cachix.org" ];
@@ -36,7 +28,7 @@
       "nouveau.config=NvGspRm=1"
     ];
     kernel.sysctl."kernel.sysrq" = 502; # REISUB
-    kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages_xanmod;
     extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
     # don't actually need to boot from nfs, https://github.com/NixOS/nixpkgs/issues/76671
     supportedFilesystems = [ "nfs" ];
@@ -100,8 +92,9 @@
   ];
 
   services.pulseaudio.enable = false;
-  #hardware.pulseaudio.enable = false;
-  hardware.new-lg4ff.enable = true;
+
+  # TODO re-enable
+  #hardware.new-lg4ff.enable = true;
   hardware.flipperzero.enable = true;
   security.rtkit.enable = true;
 
@@ -117,6 +110,7 @@
         "wireshark"
         "docker"
         "adbusers"
+        "plugdev"
       ];
       packages = with pkgs; [
         # using system packages instead
@@ -163,7 +157,6 @@
     kinect-audio-setup
     android-tools
     nfs-utils
-    lighthouse-steamvr
 
     #shared folder for VM
     virtiofsd
@@ -228,6 +221,7 @@
         csharpier.csharpier-vscode
         ms-azuretools.vscode-docker
         tamasfe.even-better-toml
+        geequlim.godot-tools
         github.vscode-github-actions
         visualstudioexptteam.vscodeintellicode
         visualstudioexptteam.intellicode-api-usage-examples
@@ -247,6 +241,7 @@
       ppkgs.requests
       ppkgs.pyusb
       ppkgs.tqdm
+      ppkgs.hidapi
     ]))
     libusb1
 
@@ -262,26 +257,8 @@
     jetbrains.pycharm-professional
     jetbrains.rider
     nodejs
-    unityhub # installed 2022.3.6f1 using the uri: unityhub://2022.3.6f1/b9e6e7e9fa2d
-
-    # VR
-    wlx-overlay-s
-    wayvr-dashboard
-    opencomposite
-    #(opencomposite.overrideAttrs (oldAttrs: {
-    #  pname = "opencomposite";
-    #    src = pkgs.fetchFromGitLab {
-    #      domain = "gitlab.com";
-    #      owner = "peelz";
-    #      repo = "OpenOVR";
-    #      rev = "0ef5dd023fb196bace7c6edc8588b2dedb113da0";
-    #      hash = "sha256-WG+51mX5gK/yyUikzXT19H/UVk294QD6HgM9zJNC2b0=";
-    #      fetchSubmodules = true;
-    #    };
-    #    buildInputs = oldAttrs.buildInputs ++ [ pkgs.automake pkgs.autoconf pkgs.libtool ];
-    #    leaveDotGit = true;
-    #})
-    #)
+    #TODO uncomment when fixed https://github.com/NixOS/nixpkgs/issues/418451
+    #unityhub # installed 2022.3.6f1 using the uri: unityhub://2022.3.6f1/b9e6e7e9fa2d
 
     # other
     gimp3
@@ -376,18 +353,6 @@
     };
 
   };
-  systemd.user.services."monado" = {
-    postStart = "/bin/sh -c '${pkgs.lighthouse-steamvr}/bin/lighthouse -s on -b C3:13:44:66:06:C6; exit 0;'
-      /bin/sh -c '${pkgs.lighthouse-steamvr}/bin/lighthouse -s on -b FC:2E:60:79:69:20; exit 0;'";
-    preStop = "/bin/sh -c '${pkgs.lighthouse-steamvr}/bin/lighthouse -s off -b C3:13:44:66:06:C6; exit 0;'
-      /bin/sh -c '${pkgs.lighthouse-steamvr}/bin/lighthouse -s off -b FC:2E:60:79:69:20; exit 0;'";
-
-    environment = {
-      STEAMVR_LH_ENABLE = "true";
-      XRT_COMPOSITOR_COMPUTE = "1";
-      XRT_COMPOSITOR_SCALE_PERCENTAGE = "110";
-    };
-  };
 
   services = {
     desktopManager.plasma6.enable = true;
@@ -414,8 +379,8 @@
 
       SUBSYSTEMS=="hid", KERNELS=="0003:046D:C24F.????", DRIVERS=="logitech", RUN+="/bin/sh -c 'chmod 666 %S%p/../../../range; chmod 777 %S%p/../../../leds/ %S%p/../../../leds/*; chmod 666 %S%p/../../../leds/*/brightness'"
 
-      SUBSYSTEM=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="0101", MODE="0660", GROUP="plugdev", TAG+="uaccess", TAG+="udev-acl"
-      KERNEL=="hidraw*", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="0101", MODE="0660", GROUP="plugdev", TAG+="uaccess", TAG+="udev-acl"
+      SUBSYSTEM=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="0101", MODE="666", GROUP="plugdev", TAG+="uaccess", TAG+="udev-acl"
+      KERNEL=="hidraw*", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="0101", MODE="666", GROUP="plugdev", TAG+="uaccess", TAG+="udev-acl"
 
       SUBSYSTEMS=="usb", ATTRS{idVendor}=="045e", ATTRS{idProduct}=="02b0" MODE="777", TAG+="uaccess"
       SUBSYSTEMS=="usb", ATTRS{idVendor}=="045e", ATTRS{idProduct}=="02ad" MODE="777", TAG+="uaccess"
@@ -456,7 +421,6 @@
       };
       packages = [
         "nheko-nightlies:app/im.nheko.Nheko//master"
-        "flathub:app/dev.slimevr.SlimeVR/x86_64/stable"
       ];
     };
 
@@ -486,26 +450,6 @@
       # If you want to use JACK applications, uncomment this
       jack.enable = true;
     };
-
-    monado = {
-      enable = true;
-      defaultRuntime = true;
-      highPriority = true;
-
-      package = (
-        pkgs.monado.overrideAttrs {
-          pname = "monado-pimax"; # optional but helps distinguishing between packages
-
-          src = pkgs.fetchFromGitLab {
-            domain = "gitlab.freedesktop.org";
-            owner = "Coreforge";
-            repo = "monado";
-            rev = "d0a7987124dba168c3c3011b900aed76b06517d6";
-            hash = "sha256-LTmAbIEwbI9UhqtpZLYf5jck9jqzvQJkF47szJgNNAw=";
-          };
-        }
-      );
-    };
   };
 
   fonts = {
@@ -524,6 +468,7 @@
   };
 
   virtualisation = {
+    waydroid.enable = true;
     libvirtd.enable = true;
     spiceUSBRedirection.enable = true;
     # for development and distrobox
