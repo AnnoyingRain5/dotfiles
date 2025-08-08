@@ -15,6 +15,9 @@
 
     stardust.url = "github:StardustXR/server";
     nixpkgs-xr.url = "github:nix-community/nixpkgs-xr";
+
+    nvidia-patch.url = "github:icewind1991/nvidia-patch-nixos";
+    nvidia-patch.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -28,6 +31,7 @@
       flatpaks,
       stardust,
       flake-firefox-nightly,
+      nvidia-patch
     }@inputs:
     {
       nixosConfigurations = {

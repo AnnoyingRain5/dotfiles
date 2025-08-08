@@ -6,6 +6,21 @@
   ...
 }:
 
+let
+  # find the latest patchable version here: https://github.com/icewind1991/nvidia-patch-nixos/blob/main/patch.json
+  # that list should match 1:1 with the list here: https://github.com/keylase/nvidia-patch
+  # if it doesn't... time for a fork!
+  package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
+    version = "575.64";
+
+    # Replace with the hashes nix gives you
+    sha256_64bit = "sha256-6wG8/nOwbH0ktgg8J+ZBT2l5VC8G5lYBQhtkzMCtaLE=";
+    sha256_aarch64 = lib.fakeHash;
+    openSha256 = "sha256-y93FdR5TZuurDlxc/p5D5+a7OH93qU4hwQqMXorcs/g=";
+    settingsSha256 = "sha256-3BvryH7p0ioweNN4S8oLDCTSS47fQPWVYwNq4AuWQgQ=";
+    persistencedSha256 = lib.fakeHash;
+  };
+in
 {
   ### only enable hardware.nvidia on the default specialisation, to allow the nouveau specialisation to exist ###
   config = lib.mkIf (config.specialisation != { }) {
@@ -37,7 +52,8 @@
       # accessible via `nvidia-settings`.
       nvidiaSettings = true;
 
-      # Optionally, you may need to select the appropriate driver version for your specific GPU.
+      # apply some patches!
+      #package = pkgs.nvidia-patch.patch-nvenc (pkgs.nvidia-patch.patch-fbc package);
       package = config.boot.kernelPackages.nvidiaPackages.stable;
     };
   };

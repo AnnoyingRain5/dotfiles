@@ -13,7 +13,10 @@
 }:
 
 {
-  imports = [ ./home.nix ./vr.nix ];
+  imports = [
+    ./home.nix
+    ./vr.nix
+  ];
 
   nix.settings = {
     substituters = [ "https://nix-community.cachix.org" ];
@@ -131,6 +134,25 @@
   nixpkgs.config = {
     allowUnfree = true;
     permittedInsecurePackages = [ "electron-33.4.11" ];
+  };
+
+  programs.obs-studio = {
+    enable = true;
+
+    # optional Nvidia hardware acceleration
+    package = (
+      pkgs.obs-studio.override {
+        cudaSupport = true;
+      }
+    );
+
+    plugins = with pkgs.obs-studio-plugins; [
+      wlrobs
+      obs-backgroundremoval
+      obs-pipewire-audio-capture
+      obs-gstreamer
+      obs-vkcapture
+    ];
   };
 
   # List packages installed in system profile. To search, run:
@@ -276,7 +298,6 @@
     vlc
     fx_cast_bridge
     wireshark
-    obs-studio
     #cura https://github.com/NixOS/nixpkgs/issues/186570
     nextcloud-client
     yubioath-flutter
