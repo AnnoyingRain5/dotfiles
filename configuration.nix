@@ -206,7 +206,7 @@
     # emulators
     dolphin-emu
     # here lies citra and yuzu...
-    ryujinx
+    ryubing
     xemu
     cemu
 
