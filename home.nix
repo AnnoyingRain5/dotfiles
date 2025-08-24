@@ -78,7 +78,7 @@
         wlx-overlay-s = {
           name = "wlx-overlay-s";
           genericName = "VR Overlay";
-          exec = "LIBMONADO_PATH=${pkgs.monado}/lib/libmonado.so wlx-overlay-s --openxr";
+          exec = "LIBMONADO_PATH=${monado}/lib/libmonado.so wlx-overlay-s --openxr";
           terminal = true;
           categories = [ "Application" ];
           mimeType = [ ];
@@ -120,7 +120,7 @@
           "file_format_version": "1.0.0",
           "runtime": {
               "name": "Monado",
-              "library_path": "${pkgs.monado}/lib/libopenxr_monado.so"
+              "library_path": "${monado}/lib/libopenxr_monado.so"
           }
         }
       '';

@@ -24,6 +24,7 @@
         };
         nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
         propagatedBuildInputs = (oldAttrs.propagatedBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
+        enableCuda = true;
         postFixup = ''
           patchelf $out/bin/monado-service --add-rpath ${pkgs.libgbinder}/lib
         '';
@@ -35,6 +36,7 @@
           patches/monado-waydroid.patch
           patches/monado-xr-meta-body-tracking-full-body.patch
           patches/monado-xrt-device-supported-struct.patch
+          patches/monado_beamng_patch.patch
         ];
       })
     );

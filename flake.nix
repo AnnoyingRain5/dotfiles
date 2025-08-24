@@ -14,9 +14,8 @@
     flatpaks.url = "github:GermanBread/declarative-flatpak/stable-v3";
 
     stardust.url = "github:StardustXR/server";
-    nixpkgs-xr.url = "github:nix-community/nixpkgs-xr/45662f1617fc07a19528fbf5d268488664cd8d72"; # I have no clue why, but on latest git (16/8/2025), anything that connects to Monado segfaults
-                                                                                                 # this will have to do for now
-
+    nixpkgs-xr.url = "github:nix-community/nixpkgs-xr";
+    
     nvidia-patch.url = "github:icewind1991/nvidia-patch-nixos";
     nvidia-patch.inputs.nixpkgs.follows = "nixpkgs";
   };

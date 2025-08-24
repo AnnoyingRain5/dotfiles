@@ -99,7 +99,17 @@
   # TODO re-enable
   #hardware.new-lg4ff.enable = true;
   hardware.flipperzero.enable = true;
+  hardware.openrazer = {
+    enable = true;
+    users = [ "annoyingrains" ];
+    keyStatistics = true;
+  };
   security.rtkit.enable = true;
+
+  users.groups = {
+    openrazer = {members = ["annoyingrains"];};
+    plugdev = {members = ["annoyingrains"];};
+  };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users = {
@@ -114,6 +124,7 @@
         "docker"
         "adbusers"
         "plugdev"
+        "openrazer"
       ];
       packages = with pkgs; [
         # using system packages instead
@@ -217,6 +228,7 @@
     kdePackages.kcalc
     #k3b - broken?
     kdePackages.ktorrent
+    kdePackages.qtwebsockets # needed for https://github.com/korapp/plasma-homeassistant
 
     # windows compatability - wine and proton stuff
     wineWowPackages.stable
