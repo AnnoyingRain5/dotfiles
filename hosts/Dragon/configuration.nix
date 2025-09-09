@@ -9,23 +9,19 @@
   imports = [
     ../../configuration.nix
     ./hardware-configuration.nix
-    ./nvidia.nix
   ];
   networking.hostName = "Dragon";
 
   hardware.bluetooth.enable = true;
   hardware.bluetooth.settings.general.ControllerMode = "bredr";
 
-  nixpkgs.overlays = [
-    (self: super: {
-      blender =
-        (super.blender.overrideAttrs (oldAttrs: {
-          patches = (oldAttrs.patches or [ ]) ++ [ ../../dotfiles/blender-xr.patch ];
-        })).override
-          { cudaSupport = true; };
-    })
-    inputs.nvidia-patch.overlays.default
-  ];
+  #nixpkgs.overlays = [
+  #  (self: super: {
+  #    blender-hip = super.blender.overrideAttrs (oldAttrs: {
+  #      patches = (oldAttrs.patches or [ ]) ++ [ ../../dotfiles/blender-xr.patch ];
+  #    });
+  #  })
+  #];
 
   # Enable OpenGL
   hardware.graphics = {
@@ -38,6 +34,10 @@
       name = "pimax headset support";
       patch = ../../patches/pimax.patch;
     }
+    {
+      name = "pimax headset support 2";
+      patch = ../../patches/pimax2.patch;
+    }
   ];
 
   services.xserver.xrandrHeads = [
@@ -46,20 +46,6 @@
       output = "DP-2";
     }
   ];
-
-  specialisation = {
-    nvk.configuration = {
-      services.xserver.videoDrivers = [
-        "nouveau"
-        "modesetting"
-        "fbdev"
-      ];
-      boot.kernelParams = [
-        "nouveau.config=NvGspRm=1"
-        "module_blacklist=nvidia"
-      ];
-    };
-  };
 
   security.pki.certificates = [
     ''

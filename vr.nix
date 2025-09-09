@@ -44,6 +44,7 @@
 
   environment.systemPackages = with pkgs; [
     pkgsi686Linux.opencomposite
+    xrizer
     opencomposite
     lighthouse-steamvr
     wlx-overlay-s
@@ -60,7 +61,7 @@
     environment = {
       STEAMVR_LH_ENABLE = "true";
       XRT_COMPOSITOR_COMPUTE = "1";
-      XRT_COMPOSITOR_SCALE_PERCENTAGE = "110";
+      #XRT_COMPOSITOR_SCALE_PERCENTAGE = "110";
     };
   };
 

@@ -107,8 +107,12 @@
   security.rtkit.enable = true;
 
   users.groups = {
-    openrazer = {members = ["annoyingrains"];};
-    plugdev = {members = ["annoyingrains"];};
+    openrazer = {
+      members = [ "annoyingrains" ];
+    };
+    plugdev = {
+      members = [ "annoyingrains" ];
+    };
   };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
@@ -150,13 +154,6 @@
   programs.obs-studio = {
     enable = true;
 
-    # optional Nvidia hardware acceleration
-    package = (
-      pkgs.obs-studio.override {
-        cudaSupport = true;
-      }
-    );
-
     plugins = with pkgs.obs-studio-plugins; [
       wlrobs
       obs-backgroundremoval
@@ -190,6 +187,8 @@
     kinect-audio-setup
     android-tools
     nfs-utils
+    usbutils
+    yt-dlp
 
     #shared folder for VM
     virtiofsd
@@ -216,6 +215,24 @@
 
     # emulators
     dolphin-emu
+    #(dolphin-emu.overrideAttrs (oldAttrs: {
+    #  pname = "dolphin-xr";
+    #  src = pkgs.fetchFromGitHub {
+    #    owner = "mxmstr";
+    #    repo = "dolphin";
+    #    rev = "4face6cb1c5ef15c024a72943a147ba34d5ebfb2";
+    #    hash = "sha256-WnxbDfbbJYuJNIbHmVo0hdA47Zw+MNa/ka00FkiAE+c=";
+    #    fetchSubmodules = true;
+    #    leaveDotGit = true;
+    #    postFetch = ''
+    #      pushd $out
+    #      git rev-parse HEAD 2>/dev/null >$out/COMMIT
+    #      find $out -name .git -print0 | xargs -0 rm -rf
+    #      popd
+    #    '';
+    #    nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.openvr ];
+    #  };
+    #}))
     # here lies citra and yuzu...
     ryubing
     xemu
@@ -241,7 +258,7 @@
     hunspellDicts.en_AU
 
     # TAFE course
-    blender
+    blender-hip
 
     # programming
     (vscode-with-extensions.override {
@@ -296,6 +313,8 @@
 
     # other
     gimp3
+    polychromatic
+    ladybird
     godot
     ungoogled-chromium
     firefoxpwa
@@ -361,6 +380,16 @@
 
     appimage = {
       enable = true;
+      package = pkgs.appimage-run.override {
+        extraPkgs = pkgs: [
+          pkgs.kdePackages.kirigami
+          pkgs.kdePackages.kirigami-addons
+          pkgs.libsForQt5.kirigami2
+          pkgs.qt6.full
+          pkgs.qt5.full
+
+        ];
+      };
       binfmt = true;
     };
 

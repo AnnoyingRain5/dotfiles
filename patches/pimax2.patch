@@ -1,0 +1,140 @@
+From 71c21302dca91651115f0f2529a2c8e32ef9a0a9 Mon Sep 17 00:00:00 2001
+From: Torge Matthies <openglfreak@googlemail.com>
+Date: Wed, 28 Aug 2024 20:38:23 +0200
+Subject: [PATCH] drm/edid: fix checksum errors in Pimax HMD EDIDs
+
+---
+ drivers/gpu/drm/drm_edid.c | 86 +++++++++++++++++++++++++++++---------
+ 1 file changed, 66 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/gpu/drm/drm_edid.c b/drivers/gpu/drm/drm_edid.c
+index f68a41eeb1fa..4456f8db6029 100644
+--- a/drivers/gpu/drm/drm_edid.c
++++ b/drivers/gpu/drm/drm_edid.c
+@@ -1787,20 +1787,25 @@ module_param_named(edid_fixup, edid_fixup, int, 0400);
+ MODULE_PARM_DESC(edid_fixup,
+ 		 "Minimum number of valid EDID header bytes (0-8, default 6)");
+ 
+-static int edid_block_compute_checksum(const void *_block)
++static int edid_buffer_compute_checksum(const void *ptr, int len)
+ {
+-	const u8 *block = _block;
++	const u8 *p = ptr;
+ 	int i;
+ 	u8 csum = 0, crc = 0;
+ 
+-	for (i = 0; i < EDID_LENGTH - 1; i++)
+-		csum += block[i];
++	for (i = 0; i < len; i++)
++		csum += p[i];
+ 
+ 	crc = 0x100 - csum;
+ 
+ 	return crc;
+ }
+ 
++static int edid_block_compute_checksum(const void *_block)
++{
++	return edid_buffer_compute_checksum(_block, EDID_LENGTH - 1);
++}
++
+ static int edid_block_get_checksum(const void *_block)
+ {
+ 	const struct edid *block = _block;
+@@ -2358,6 +2363,54 @@ static enum edid_block_status edid_block_read(void *block, unsigned int block_nu
+ 	return status;
+ }
+ 
++static u32 edid_extract_panel_id(const struct edid *edid)
++{
++	/*
++	 * We represent the ID as a 32-bit number so it can easily be compared
++	 * with "==".
++	 *
++	 * NOTE that we deal with endianness differently for the top half
++	 * of this ID than for the bottom half. The bottom half (the product
++	 * id) gets decoded as little endian by the EDID_PRODUCT_ID because
++	 * that's how everyone seems to interpret it. The top half (the mfg_id)
++	 * gets stored as big endian because that makes
++	 * drm_edid_encode_panel_id() and drm_edid_decode_panel_id() easier
++	 * to write (it's easier to extract the ASCII). It doesn't really
++	 * matter, though, as long as the number here is unique.
++	 */
++	return (u32)edid->mfg_id[0] << 24   |
++	       (u32)edid->mfg_id[1] << 16   |
++	       (u32)EDID_PRODUCT_ID(edid);
++}
++
++static bool need_pimax_checksum_fixup(const struct edid *edid)
++{
++	uint32_t panel_id = edid_extract_panel_id(edid);
++	const u8 *ext = (const u8 *)(edid + 1);
++
++	if (edid->extensions != 1)
++		return false;
++
++	if (ext[0] != 0x70 || ext[1] != 0x12 || ext[2] != 0x79 || ext[3] != 0x00)
++		return false;
++
++	switch (panel_id) {
++	case drm_edid_encode_panel_id('O', 'V', 'R', 0x0003):
++	case drm_edid_encode_panel_id('S', 'V', 'R', 0x1019):
++	case drm_edid_encode_panel_id('P', 'V', 'R', 0x1019):
++	case drm_edid_encode_panel_id('P', 'V', 'R', 0x101a):
++	case drm_edid_encode_panel_id('P', 'V', 'R', 0x101b):
++		return true;
++	default:
++		return false;
++	}
++}
++
++static void recalculate_checksum(void *ptr, int len)
++{
++	((u8 *)ptr)[len - 1] = edid_buffer_compute_checksum(ptr, len - 1);
++}
++
+ static struct edid *_drm_do_get_edid(struct drm_connector *connector,
+ 				     read_block_fn read_block, void *context,
+ 				     size_t *size)
+@@ -2457,6 +2510,14 @@ static struct edid *_drm_do_get_edid(struct drm_connector *connector,
+ 	if (size)
+ 		*size = alloc_size;
+ 
++	/* Workaround for Pimax HMDs with hand-crafted EDIDs */
++	if (edid && need_pimax_checksum_fixup(edid)) {
++		u8 *p = (u8 *)edid;
++		recalculate_checksum(p + 129, 126);
++		recalculate_checksum(p, 256);
++		connector->edid_corrupt = false;
++	}
++
+ 	return edid;
+ 
+ fail:
+@@ -2797,22 +2858,7 @@ u32 drm_edid_get_panel_id(const struct drm_edid *drm_edid)
+ 	if (drm_edid->size < EDID_LENGTH)
+ 		return 0;
+ 
+-	/*
+-	 * We represent the ID as a 32-bit number so it can easily be compared
+-	 * with "==".
+-	 *
+-	 * NOTE that we deal with endianness differently for the top half
+-	 * of this ID than for the bottom half. The bottom half (the product
+-	 * id) gets decoded as little endian by the EDID_PRODUCT_ID because
+-	 * that's how everyone seems to interpret it. The top half (the mfg_id)
+-	 * gets stored as big endian because that makes
+-	 * drm_edid_encode_panel_id() and drm_edid_decode_panel_id() easier
+-	 * to write (it's easier to extract the ASCII). It doesn't really
+-	 * matter, though, as long as the number here is unique.
+-	 */
+-	return (u32)edid->mfg_id[0] << 24   |
+-	       (u32)edid->mfg_id[1] << 16   |
+-	       (u32)EDID_PRODUCT_ID(edid);
++	return edid_extract_panel_id(edid);
+ }
+ EXPORT_SYMBOL(drm_edid_get_panel_id);
+ 
+-- 
+2.46.0
+
