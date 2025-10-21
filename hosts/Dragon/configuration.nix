@@ -29,6 +29,18 @@
     enable32Bit = true;
   };
 
+  boot.loader.grub.extraEntries = ''
+    menuentry "MacOS" {
+      search --fs-uuid --set=root 1C84-9E88
+      chainloader /EFI/OC/OpenCore.efi
+  }
+  '';
+
+  hardware.amdgpu.overdrive.enable = true;
+  hardware.amdgpu.overdrive.ppfeaturemask = "0xffffffff";
+  #services.lact.enable = true;
+  programs.corectrl.enable = true;
+
   boot.kernelPatches = [
     {
       name = "pimax headset support";
@@ -42,7 +54,7 @@
 
   services.xserver.xrandrHeads = [
     {
-      monitorConfig = ''Option "Rotate" "left"'';
+      monitorConfig = ''Option "Rotate" "right"'';
       output = "DP-2";
     }
   ];

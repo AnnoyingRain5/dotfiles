@@ -20,6 +20,9 @@
     programs.firefox = {
       enable = true;
       package = inputs.flake-firefox-nightly.packages.${pkgs.system}.firefox-nightly-bin;
+      nativeMessagingHosts = with pkgs; [
+        firefoxpwa
+      ];
       profiles.annoyingrains = {
         extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
           ublock-origin
@@ -62,17 +65,27 @@
 
     xdg.desktopEntries =
       let
-        monado = pkgs.monado.overrideAttrs {
-          pname = "monado-pimax"; # optional but helps distinguishing between packages
-
+        monado = pkgs.monado.overrideAttrs (oldAttrs: {
           src = pkgs.fetchFromGitLab {
             domain = "gitlab.freedesktop.org";
-            owner = "Coreforge";
+            owner = "AnnoyingRain5";
             repo = "monado";
-            rev = "a82eef73be841aff1324d32dbe9a031c6c0417c8";
-            hash = "sha256-Y96L4DU9bJWIoNg1YhpbAkZHnk9RUEslb2Fn0aPF6zQ=";
+            rev = "2b6bb0c96b48a99a3376313e9d91f75646afe6a3";
+            hash = "sha256-ux/krES6Q/KDTSBhBA4+vqIBp2gK1Buu+FYhghyRGy8=";
           };
-        };
+          nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
+          propagatedBuildInputs = (oldAttrs.propagatedBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
+          enableCuda = true;
+          postFixup = ''
+            patchelf $out/bin/monado-service --add-rpath ${pkgs.libgbinder}/lib
+          '';
+          patches = (oldAttrs.patches or [ ]) ++ [
+            #patches/monado-load-solarxr.patch
+            #patches/monado-solarxr.patch
+            patches/monado-waydroid.patch
+            patches/monado_beamng_patch.patch
+          ];
+        });
       in
       {
         wlx-overlay-s = {
@@ -103,17 +116,27 @@
 
     xdg.configFile."openxr/1/active_runtime.json".text =
       let
-        monado = pkgs.monado.overrideAttrs {
-          pname = "monado-pimax"; # optional but helps distinguishing between packages
-
+        monado = pkgs.monado.overrideAttrs (oldAttrs: {
           src = pkgs.fetchFromGitLab {
             domain = "gitlab.freedesktop.org";
-            owner = "Coreforge";
+            owner = "AnnoyingRain5";
             repo = "monado";
-            rev = "a82eef73be841aff1324d32dbe9a031c6c0417c8";
-            hash = "sha256-Y96L4DU9bJWIoNg1YhpbAkZHnk9RUEslb2Fn0aPF6zQ=";
+            rev = "2b6bb0c96b48a99a3376313e9d91f75646afe6a3";
+            hash = "sha256-ux/krES6Q/KDTSBhBA4+vqIBp2gK1Buu+FYhghyRGy8=";
           };
-        };
+          nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
+          propagatedBuildInputs = (oldAttrs.propagatedBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
+          enableCuda = true;
+          postFixup = ''
+            patchelf $out/bin/monado-service --add-rpath ${pkgs.libgbinder}/lib
+          '';
+          patches = (oldAttrs.patches or [ ]) ++ [
+            #patches/monado-load-solarxr.patch
+            #patches/monado-solarxr.patch
+            patches/monado-waydroid.patch
+            patches/monado_beamng_patch.patch
+          ];
+        });
       in
       ''
         {

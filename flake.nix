@@ -11,7 +11,12 @@
     nix-vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
     flake-firefox-nightly.url = "github:nix-community/flake-firefox-nightly";
 
-    flatpaks.url = "github:GermanBread/declarative-flatpak/stable-v3";
+    flatpaks.url = "github:GermanBread/declarative-flatpak/latest";
+
+    qemu-applesilicon.url = "github:onny/nixpkgs/qemu-applesilicon";
+
+    minegrub-theme.url = "github:Lxtharia/minegrub-theme";
+    minecraft-plymouth.url = "github:AnnoyingRain5/minecraft-plymouth-theme/fix-nix";
 
     stardust.url = "github:StardustXR/server";
     nixpkgs-xr.url = "github:nix-community/nixpkgs-xr";
@@ -29,6 +34,9 @@
       flatpaks,
       stardust,
       flake-firefox-nightly,
+      qemu-applesilicon,
+      minegrub-theme,
+      minecraft-plymouth
     }@inputs:
     {
       nixosConfigurations = {
@@ -41,8 +49,9 @@
           modules = [
             ./hosts/Blaze/configuration.nix
             nur.modules.nixos.default
-            flatpaks.nixosModule
+            flatpaks.nixosModules.default
             nixpkgs-xr.nixosModules.nixpkgs-xr
+            minegrub-theme.nixosModules.default
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
@@ -63,8 +72,9 @@
           modules = [
             ./hosts/Dragon/configuration.nix
             nur.modules.nixos.default
-            flatpaks.nixosModule
+            flatpaks.nixosModules.default
             nixpkgs-xr.nixosModules.nixpkgs-xr
+            minegrub-theme.nixosModules.default
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;

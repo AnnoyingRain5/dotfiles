@@ -17,6 +17,10 @@
     ./home.nix
     ./vr.nix
   ];
+  nixpkgs.overlays = [
+    inputs.minecraft-plymouth.overlay
+    inputs.nix-vscode-extensions.overlays.default
+  ];
 
   nix.settings = {
     substituters = [ "https://nix-community.cachix.org" ];
@@ -32,12 +36,17 @@
     ];
     kernel.sysctl."kernel.sysrq" = 502; # REISUB
     kernelPackages = pkgs.linuxPackages_xanmod;
-    extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
+    extraModulePackages = with config.boot.kernelPackages; [
+      v4l2loopback
+      amdgpu-i2c
+      apfs
+    ];
     # don't actually need to boot from nfs, https://github.com/NixOS/nixpkgs/issues/76671
     supportedFilesystems = [ "nfs" ];
     plymouth = {
       enable = true;
-      theme = "breeze";
+      themePackages = [pkgs.plymouth-minecraft-theme];
+      theme = "mc";
     };
 
     loader = {
@@ -46,6 +55,12 @@
         devices = [ "nodev" ];
         efiSupport = true;
         useOSProber = true;
+        minegrub-theme = {
+          enable = true;
+          splash = "100% Flakes!";
+          background = "background_options/1.8  - [Classic Minecraft].png";
+          boot-options-count = 3;
+        };
       };
 
       efi = {
@@ -90,10 +105,6 @@
     };
   };
 
-  environment.plasma6.excludePackages = with pkgs.libsForQt5; [
-    elisa # do not install Elisa
-  ];
-
   services.pulseaudio.enable = false;
 
   # TODO re-enable
@@ -111,6 +122,9 @@
       members = [ "annoyingrains" ];
     };
     plugdev = {
+      members = [ "annoyingrains" ];
+    };
+    samba = {
       members = [ "annoyingrains" ];
     };
   };
@@ -148,7 +162,7 @@
   # Allow unfree packages
   nixpkgs.config = {
     allowUnfree = true;
-    permittedInsecurePackages = [ "electron-33.4.11" ];
+    permittedInsecurePackages = [ "qtwebengine-5.15.19" ];
   };
 
   programs.obs-studio = {
@@ -170,6 +184,7 @@
 
     ## command line utilities ##
     wget
+    file
     nixfmt-rfc-style
     sshfs
     killall
@@ -236,10 +251,12 @@
     # here lies citra and yuzu...
     ryubing
     xemu
-    cemu
+    #cemu
+    #inputs.qemu-applesilicon.legacyPackages.${pkgs.system}.qemu-applesilicon # is this an emaulator?
 
     # kde apps that should be installed by default
     kdePackages.kate
+    kdePackages.kdenetwork-filesharing
     kdePackages.plasma-vault
     cryfs # needed for plasma-vault re: https://github.com/NixOS/nixpkgs/issues/273046
     kdePackages.kcalc
@@ -261,8 +278,12 @@
     blender-hip
 
     # programming
+    gcc
+    rustc
+    rustfmt
+    cargo
     (vscode-with-extensions.override {
-      vscodeExtensions = with inputs.nix-vscode-extensions.extensions.x86_64-linux.vscode-marketplace; [
+      vscodeExtensions = with pkgs.nix-vscode-extensions.vscode-marketplace; [
         ms-vsliveshare.vsliveshare
         #ms-dotnettools.csharp
         njpwerner.autodocstring
@@ -273,9 +294,11 @@
         ms-azuretools.vscode-docker
         tamasfe.even-better-toml
         geequlim.godot-tools
+        rust-lang.rust-analyzer
         github.vscode-github-actions
         visualstudioexptteam.vscodeintellicode
         visualstudioexptteam.intellicode-api-usage-examples
+        wokwi.wokwi-vscode
         # ms-dotnettools.csdevkit # this seems to be broken?
         # ms-dotnettools.vscodeintellicode-csharp # also broken ):
         wholroyd.jinja
@@ -285,14 +308,16 @@
         ms-python.debugpy
         qwtel.sqlite-viewer
         jnoortheen.nix-ide
+        ms-vscode-remote.remote-ssh
       ];
     })
-    (pkgs.python3Full.withPackages (ppkgs: [
+    (pkgs.python3.withPackages (ppkgs: [
       ppkgs.tkinter
       ppkgs.requests
       ppkgs.pyusb
       ppkgs.tqdm
       ppkgs.hidapi
+      ppkgs.cffi
     ]))
     libusb1
 
@@ -312,6 +337,9 @@
     #unityhub # installed 2022.3.6f1 using the uri: unityhub://2022.3.6f1/b9e6e7e9fa2d
 
     # other
+    #(firefox.overrideAttrs (oldAttrs: {
+    #  patches = (oldAttrs.patches or [ ]) ++ [ patches/firefox/webxr-linux-dmabuf.patch ];
+    #}))
     gimp3
     polychromatic
     ladybird
@@ -350,6 +378,10 @@
   };
 
   programs = {
+    gamescope = {
+      enable = true;
+      capSysNice = true;
+    };
     steam = {
       enable = true;
       extraCompatPackages = [
@@ -359,7 +391,6 @@
       ];
       gamescopeSession = {
         enable = true;
-        args = [ "-O DP-1" ];
       };
     };
     partition-manager.enable = true;
@@ -427,6 +458,13 @@
     hardware.openrgb = {
       enable = true;
       package = pkgs.openrgb-with-all-plugins;
+    };
+    samba = {
+      # The full package is needed to register mDNS records (for discoverability), see discussion in
+      # https://gist.github.com/vy-let/a030c1079f09ecae4135aebf1e121ea6
+      enable = true;
+      usershares.enable = true;
+      openFirewall = true;
     };
 
     # rule 1: 3d printer (?)
@@ -565,5 +603,5 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "23.05"; # Did you read the comment?
+  system.stateVersion = "24.11"; # Did you read the comment?
 }
