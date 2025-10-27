@@ -37,6 +37,7 @@
   '';
 
   hardware.amdgpu.overdrive.enable = true;
+  hardware.amdgpu.opencl.enable = true;
   hardware.amdgpu.overdrive.ppfeaturemask = "0xffffffff";
   #services.lact.enable = true;
   programs.corectrl.enable = true;
