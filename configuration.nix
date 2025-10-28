@@ -450,6 +450,7 @@
   services = {
     desktopManager.plasma6.enable = true;
     openssh.enable = true;
+    openssh.settings.X11Forwarding = true;
     printing.enable = true;
     # required for yubiauth
     pcscd.enable = true;
