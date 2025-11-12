@@ -27,6 +27,9 @@
     trusted-public-keys = [ "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=" ];
   };
 
+  services.postgresql.enable = true;
+  services.postgresql.extraPlugins = ps: with ps; [ postgis ];
+
   boot = {
     # graphical decryption splash screen
     initrd.systemd.enable = true;
@@ -265,7 +268,16 @@
     kdePackages.qtwebsockets # needed for https://github.com/korapp/plasma-homeassistant
 
     # windows compatability - wine and proton stuff
-    wineWowPackages.stable
+    #wineWowPackages.stable
+    (wineWowPackages.unstable.overrideAttrs (oldAttrs: {
+      pname = "wineGDK";
+      src = pkgs.fetchFromGitHub {
+        owner = "Weather-OS";
+        repo = "WineGDK";
+        rev = "8ccf89706b2109b0908e1503c1de0051dcc9caa9";
+        hash = "sha256-H3cgv+DxixbzBmNiflk3Wd9xGGDJuXQVh++2C5vIcOw=";
+      };
+    }))
     winetricks
     protontricks
 
@@ -309,6 +321,9 @@
         qwtel.sqlite-viewer
         jnoortheen.nix-ide
         ms-vscode-remote.remote-ssh
+        vscjava.vscode-java-pack
+        platformio.platformio-ide
+        ms-vscode.cpptools
       ];
     })
     (pkgs.python3.withPackages (ppkgs: [
@@ -318,6 +333,7 @@
       ppkgs.tqdm
       ppkgs.hidapi
       ppkgs.cffi
+      ppkgs.stupidartnet
     ]))
     libusb1
 
@@ -416,8 +432,6 @@
           pkgs.kdePackages.kirigami
           pkgs.kdePackages.kirigami-addons
           pkgs.libsForQt5.kirigami2
-          pkgs.qt6.full
-          pkgs.qt5.full
 
         ];
       };
