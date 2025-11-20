@@ -35,7 +35,6 @@
     initrd.systemd.enable = true;
     kernelParams = [
       "quiet"
-      "nouveau.config=NvGspRm=1"
     ];
     kernel.sysctl."kernel.sysrq" = 502; # REISUB
     kernelPackages = pkgs.linuxPackages_xanmod;
@@ -165,7 +164,7 @@
   # Allow unfree packages
   nixpkgs.config = {
     allowUnfree = true;
-    permittedInsecurePackages = [ "qtwebengine-5.15.19" ];
+    permittedInsecurePackages = ["electron-36.9.5"]; # "qtwebengine-5.15.19"
   };
 
   programs.obs-studio = {
@@ -268,16 +267,16 @@
     kdePackages.qtwebsockets # needed for https://github.com/korapp/plasma-homeassistant
 
     # windows compatability - wine and proton stuff
-    #wineWowPackages.stable
-    (wineWowPackages.unstable.overrideAttrs (oldAttrs: {
-      pname = "wineGDK";
-      src = pkgs.fetchFromGitHub {
-        owner = "Weather-OS";
-        repo = "WineGDK";
-        rev = "8ccf89706b2109b0908e1503c1de0051dcc9caa9";
-        hash = "sha256-H3cgv+DxixbzBmNiflk3Wd9xGGDJuXQVh++2C5vIcOw=";
-      };
-    }))
+    wineWowPackages.stable
+    #(wineWowPackages.unstable.overrideAttrs (oldAttrs: {
+    #  pname = "wineGDK";
+    #  src = pkgs.fetchFromGitHub {
+    #    owner = "Weather-OS";
+    #    repo = "WineGDK";
+    #    rev = "8ccf89706b2109b0908e1503c1de0051dcc9caa9";
+    #    hash = "sha256-H3cgv+DxixbzBmNiflk3Wd9xGGDJuXQVh++2C5vIcOw=";
+    #  };
+    #}))
     winetricks
     protontricks
 
@@ -294,6 +293,7 @@
     rustc
     rustfmt
     cargo
+    clang-tools # for clang-format
     (vscode-with-extensions.override {
       vscodeExtensions = with pkgs.nix-vscode-extensions.vscode-marketplace; [
         ms-vsliveshare.vsliveshare
@@ -324,6 +324,7 @@
         vscjava.vscode-java-pack
         platformio.platformio-ide
         ms-vscode.cpptools
+        xaver.clang-format
       ];
     })
     (pkgs.python3.withPackages (ppkgs: [
@@ -365,13 +366,13 @@
     filezilla
     kdePackages.kleopatra
     keepassxc
-    qflipper
+    qFlipper
     mitmproxy
     prusa-slicer
     feishin
     mangohud
     vlc
-    fx_cast_bridge
+    fx-cast-bridge
     wireshark
     #cura https://github.com/NixOS/nixpkgs/issues/186570
     nextcloud-client
@@ -573,7 +574,7 @@
     packages = with pkgs; [
       ipafont
       corefonts
-      vistafonts
+      vista-fonts
       unifont
       (import (builtins.fetchTarball {
         url = "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v2.tar.gz";

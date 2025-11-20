@@ -66,16 +66,16 @@
     xdg.desktopEntries =
       let
         monado = pkgs.monado.overrideAttrs (oldAttrs: {
-          src = pkgs.fetchFromGitLab {
-            domain = "gitlab.freedesktop.org";
-            owner = "AnnoyingRain5";
-            repo = "monado";
-            rev = "2b6bb0c96b48a99a3376313e9d91f75646afe6a3";
-            hash = "sha256-ux/krES6Q/KDTSBhBA4+vqIBp2gK1Buu+FYhghyRGy8=";
-          };
+          pname = "monado-pimax"; # optional but helps distinguishing between packages
+        src = pkgs.fetchFromGitLab {
+          domain = "gitlab.freedesktop.org";
+          owner = "Coreforge";
+          repo = "monado";
+          rev = "16792a6f26210faca082d192a8fa9fbf625ab1d9";
+          hash = "sha256-M7bjfHS4h0GQ/77PuIxEVvhFZl4dDPVas19/oSfoGCk=";
+        };
           nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
           propagatedBuildInputs = (oldAttrs.propagatedBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
-          enableCuda = true;
           postFixup = ''
             patchelf $out/bin/monado-service --add-rpath ${pkgs.libgbinder}/lib
           '';
@@ -117,16 +117,16 @@
     xdg.configFile."openxr/1/active_runtime.json".text =
       let
         monado = pkgs.monado.overrideAttrs (oldAttrs: {
-          src = pkgs.fetchFromGitLab {
-            domain = "gitlab.freedesktop.org";
-            owner = "AnnoyingRain5";
-            repo = "monado";
-            rev = "2b6bb0c96b48a99a3376313e9d91f75646afe6a3";
-            hash = "sha256-ux/krES6Q/KDTSBhBA4+vqIBp2gK1Buu+FYhghyRGy8=";
-          };
+          pname = "monado-pimax"; # optional but helps distinguishing between packages
+        src = pkgs.fetchFromGitLab {
+          domain = "gitlab.freedesktop.org";
+          owner = "Coreforge";
+          repo = "monado";
+          rev = "16792a6f26210faca082d192a8fa9fbf625ab1d9";
+          hash = "sha256-M7bjfHS4h0GQ/77PuIxEVvhFZl4dDPVas19/oSfoGCk=";
+        };
           nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
           propagatedBuildInputs = (oldAttrs.propagatedBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
-          enableCuda = true;
           postFixup = ''
             patchelf $out/bin/monado-service --add-rpath ${pkgs.libgbinder}/lib
           '';
