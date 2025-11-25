@@ -41,13 +41,12 @@
     extraModulePackages = with config.boot.kernelPackages; [
       v4l2loopback
       amdgpu-i2c
-      apfs
     ];
     # don't actually need to boot from nfs, https://github.com/NixOS/nixpkgs/issues/76671
     supportedFilesystems = [ "nfs" ];
     plymouth = {
       enable = true;
-      themePackages = [pkgs.plymouth-minecraft-theme];
+      themePackages = [ pkgs.plymouth-minecraft-theme ];
       theme = "mc";
     };
 
@@ -164,7 +163,7 @@
   # Allow unfree packages
   nixpkgs.config = {
     allowUnfree = true;
-    permittedInsecurePackages = ["electron-36.9.5"]; # "qtwebengine-5.15.19"
+    permittedInsecurePackages = [ "electron-36.9.5" ];
   };
 
   programs.obs-studio = {
@@ -200,8 +199,6 @@
     ffmpeg
     distrobox
     unrar
-    freenect
-    kinect-audio-setup
     android-tools
     nfs-utils
     usbutils
@@ -259,8 +256,6 @@
     # kde apps that should be installed by default
     kdePackages.kate
     kdePackages.kdenetwork-filesharing
-    kdePackages.plasma-vault
-    cryfs # needed for plasma-vault re: https://github.com/NixOS/nixpkgs/issues/273046
     kdePackages.kcalc
     #k3b - broken?
     kdePackages.ktorrent
@@ -344,8 +339,6 @@
       configureFlags = (oldAttrs.configureFlags or [ ]) ++ [ "--enable-dsa-keys" ];
     }))
 
-    libgpod
-    rhythmbox
     hidapi
     jetbrains.pycharm-professional
     jetbrains.rider
@@ -369,12 +362,10 @@
     qFlipper
     mitmproxy
     prusa-slicer
-    feishin
     mangohud
     vlc
     fx-cast-bridge
     wireshark
-    #cura https://github.com/NixOS/nixpkgs/issues/186570
     nextcloud-client
     yubioath-flutter
 
@@ -414,8 +405,6 @@
     kdeconnect.enable = true;
     virt-manager.enable = true;
     dconf.enable = true; # requires for home-manager gtk
-    direnv.enable = true;
-    calls.enable = true;
     wireshark.enable = true;
     adb.enable = true;
     nix-ld.enable = true;
@@ -433,6 +422,7 @@
           pkgs.kdePackages.kirigami
           pkgs.kdePackages.kirigami-addons
           pkgs.libsForQt5.kirigami2
+          pkgs.vips # postybirb 4.x
 
         ];
       };
@@ -459,7 +449,6 @@
       enableSSHSupport = true;
       pinentryPackage = lib.mkForce pkgs.pinentry-qt;
     };
-
   };
 
   services = {
