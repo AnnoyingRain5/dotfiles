@@ -15,21 +15,13 @@
 
   hardware.bluetooth.enable = true;
 
-  #nixpkgs.overlays = [
-  #  (self: super: {
-  #    blender-hip = super.blender.overrideAttrs (oldAttrs: {
-  #      patches = (oldAttrs.patches or [ ]) ++ [ ../../dotfiles/blender-xr.patch ];
-  #    });
-  #  })
-  #];
-
   # Enable OpenGL
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
   };
 
-  system.replaceRuntimeDependencies = [
+  system.replaceDependencies.replacements = [
     ({
       original = pkgs.mesa;
       replacement = nixpkgs-25-11.mesa;

@@ -19,7 +19,8 @@
 
     programs.firefox = {
       enable = true;
-      package = inputs.flake-firefox-nightly.packages.${pkgs.system}.firefox-nightly-bin;
+      package =
+        inputs.flake-firefox-nightly.packages.${pkgs.stdenv.hostPlatform.system}.firefox-nightly-bin;
       nativeMessagingHosts = with pkgs; [
         firefoxpwa
       ];

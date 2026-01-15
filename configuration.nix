@@ -30,7 +30,7 @@
   };
 
   services.postgresql.enable = true;
-  services.postgresql.extraPlugins = ps: with ps; [ postgis ];
+  services.postgresql.extensions = ps: with ps; [ postgis ];
 
   boot = {
     # graphical decryption splash screen
@@ -232,7 +232,6 @@
     kdePackages.kate
     kdePackages.kdenetwork-filesharing
     kdePackages.kcalc
-    k3b
     kdePackages.ktorrent
     kdePackages.qtwebsockets # needed for https://github.com/korapp/plasma-homeassistant
 
@@ -297,7 +296,7 @@
       ppkgs.cffi
       ppkgs.stupidartnet
     ]))
-    jetbrains.pycharm-professional
+    jetbrains.pycharm
     jetbrains.clion
     jetbrains.idea
     #TODO uncomment when fixed https://github.com/NixOS/nixpkgs/issues/418451
@@ -357,7 +356,8 @@
 
     firefox = {
       enable = true;
-      package = inputs.flake-firefox-nightly.packages.${pkgs.system}.firefox-nightly-bin;
+      package =
+        inputs.flake-firefox-nightly.packages.${pkgs.stdenv.hostPlatform.system}.firefox-nightly-bin;
       nativeMessagingHosts.packages = [ pkgs.firefoxpwa ];
     };
 
