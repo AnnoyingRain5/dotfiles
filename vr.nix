@@ -6,6 +6,9 @@
 }:
 
 {
+  services.wivrn = {
+    enable = true;
+  };
   services.monado = {
     enable = true;
     defaultRuntime = true;
@@ -27,8 +30,6 @@
           patchelf $out/bin/monado-service --add-rpath ${pkgs.libgbinder}/lib
         '';
         patches = (oldAttrs.patches or [ ]) ++ [
-          #patches/monado-load-solarxr.patch
-          #patches/monado-solarxr.patch
           patches/monado-waydroid.patch
         ];
       })

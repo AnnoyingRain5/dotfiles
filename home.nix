@@ -80,10 +80,7 @@
             patchelf $out/bin/monado-service --add-rpath ${pkgs.libgbinder}/lib
           '';
           patches = (oldAttrs.patches or [ ]) ++ [
-            #patches/monado-load-solarxr.patch
-            #patches/monado-solarxr.patch
             patches/monado-waydroid.patch
-            patches/monado_beamng_patch.patch
           ];
         });
       in
@@ -131,10 +128,7 @@
             patchelf $out/bin/monado-service --add-rpath ${pkgs.libgbinder}/lib
           '';
           patches = (oldAttrs.patches or [ ]) ++ [
-            #patches/monado-load-solarxr.patch
-            #patches/monado-solarxr.patch
             patches/monado-waydroid.patch
-            patches/monado_beamng_patch.patch
           ];
         });
       in

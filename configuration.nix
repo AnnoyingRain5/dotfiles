@@ -177,6 +177,7 @@
       obs-pipewire-audio-capture
       obs-gstreamer
       obs-vkcapture
+      obs-teleport
     ];
   };
 
@@ -225,7 +226,6 @@
 
     # chat
     discord-canary
-    vesktop
     telegram-desktop
     thunderbird
 
@@ -335,15 +335,9 @@
     ]))
     libusb1
 
-    # So I can SSH into an old Apple TV, I wish I was joking
-    (pkgs.openssh.overrideAttrs (oldAttrs: {
-      # Add the configure flag that previously enabled DSA.
-      configureFlags = (oldAttrs.configureFlags or [ ]) ++ [ "--enable-dsa-keys" ];
-    }))
-
     hidapi
     jetbrains.pycharm-professional
-    jetbrains.rider
+    jetbrains.clion
     nodejs
     #TODO uncomment when fixed https://github.com/NixOS/nixpkgs/issues/418451
     #unityhub # installed 2022.3.6f1 using the uri: unityhub://2022.3.6f1/b9e6e7e9fa2d
@@ -454,9 +448,17 @@
   };
 
   services = {
+    fstrim.enable = true;
     desktopManager.plasma6.enable = true;
-    openssh.enable = true;
-    openssh.settings.X11Forwarding = true;
+    openssh = {
+      enable = true;
+      settings.X11Forwarding = true;
+      # So I can SSH into an old Apple TV, I wish I was joking
+      package = pkgs.openssh.overrideAttrs (oldAttrs: {
+        # Add the configure flag that previously enabled DSA.
+        configureFlags = (oldAttrs.configureFlags or [ ]) ++ [ "--enable-dsa-keys" ];
+      });
+    };
     printing.enable = true;
     # required for yubiauth
     pcscd.enable = true;
@@ -523,11 +525,9 @@
       enable = true;
       remotes = {
         "flathub" = "https://dl.flathub.org/repo/flathub.flatpakrepo";
-        "nheko-nightlies" =
-          "https://raw.githubusercontent.com/Nheko-Reborn/nheko/master/nheko-nightly.flatpakrepo"; # impure flake go BRRR
       };
       packages = [
-        "nheko-nightlies:app/im.nheko.Nheko//master"
+        "flathub:app/org.vinegarhq.Sober//master"
       ];
     };
 
