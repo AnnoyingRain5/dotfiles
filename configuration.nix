@@ -16,10 +16,12 @@
   imports = [
     ./home.nix
     ./vr.nix
+    ./plasma-env-speedup.nix
   ];
   nixpkgs.overlays = [
     inputs.minecraft-plymouth.overlay
     inputs.nix-vscode-extensions.overlays.default
+    inputs.nix-cachyos-kernel.overlay
   ];
 
   nix.settings = {
@@ -37,10 +39,10 @@
       "quiet"
     ];
     kernel.sysctl."kernel.sysrq" = 502; # REISUB
-    kernelPackages = pkgs.linuxPackages_xanmod;
+    kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-lts-lto; # cachyosKernels.linuxPackages-cachyos-latest-lto # CatchyOS kernel with link-time optimisation https://wiki.cachyos.org/features/kernel/
     extraModulePackages = with config.boot.kernelPackages; [
       v4l2loopback
-      amdgpu-i2c
+      #amdgpu-i2c
     ];
     # don't actually need to boot from nfs, https://github.com/NixOS/nixpkgs/issues/76671
     supportedFilesystems = [ "nfs" ];
@@ -531,7 +533,6 @@
 
     pipewire = {
       enable = true;
-      #wireplumber.enable = true;
       alsa.enable = true;
       alsa.support32Bit = true;
       pulse.enable = true;
@@ -541,7 +542,6 @@
           "context.modules" = [
             {
               name = "libpipewire-module-raop-discover";
-
               # increase the buffer size if you get dropouts/glitches
               args = {
                 roap.discover-local = true; # docs are unclear which is correct, seems to work fine tho so... eh

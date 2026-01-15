@@ -2,8 +2,10 @@
   description = "System flake";
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
+    nixpkgs-25-11.url = "nixpkgs/nixos-25.11";
     nur.url = "github:nix-community/NUR";
     #nur.inputs.nixpkgs.follows = "nixpkgs";
+    nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel";
 
     home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -20,7 +22,7 @@
 
     stardust.url = "github:StardustXR/server";
     nixpkgs-xr.url = "github:nix-community/nixpkgs-xr";
-    
+
   };
 
   outputs =
@@ -36,7 +38,9 @@
       flake-firefox-nightly,
       qemu-applesilicon,
       minegrub-theme,
-      minecraft-plymouth
+      minecraft-plymouth,
+      nix-cachyos-kernel,
+      nixpkgs-25-11,
     }@inputs:
     {
       nixosConfigurations = {
@@ -67,6 +71,9 @@
             stardust = import stardust {
               inherit system;
               config.allowUnfree = true;
+            };
+            nixpkgs-25-11 = import nixpkgs-25-11 {
+              inherit system;
             };
           };
           modules = [

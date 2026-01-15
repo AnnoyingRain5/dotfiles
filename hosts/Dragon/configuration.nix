@@ -2,6 +2,7 @@
   config,
   pkgs,
   inputs,
+  nixpkgs-25-11,
   ...
 }:
 
@@ -13,7 +14,6 @@
   networking.hostName = "Dragon";
 
   hardware.bluetooth.enable = true;
-  hardware.bluetooth.settings.general.ControllerMode = "bredr";
 
   #nixpkgs.overlays = [
   #  (self: super: {
@@ -29,11 +29,22 @@
     enable32Bit = true;
   };
 
+  system.replaceRuntimeDependencies = [
+    ({
+      original = pkgs.mesa;
+      replacement = nixpkgs-25-11.mesa;
+    })
+    ({
+      original = pkgs.mesa.drivers;
+      replacement = nixpkgs-25-11.mesa.drivers;
+    })
+  ];
+
   boot.loader.grub.extraEntries = ''
-    menuentry "MacOS" {
-      search --fs-uuid --set=root 1C84-9E88
-      chainloader /EFI/OC/OpenCore.efi
-  }
+      menuentry "MacOS" {
+        search --fs-uuid --set=root 1C84-9E88
+        chainloader /EFI/OC/OpenCore.efi
+    }
   '';
 
   #hardware.amdgpu.overdrive.enable = true;

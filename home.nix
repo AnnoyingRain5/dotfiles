@@ -67,13 +67,13 @@
       let
         monado = pkgs.monado.overrideAttrs (oldAttrs: {
           pname = "monado-pimax"; # optional but helps distinguishing between packages
-        src = pkgs.fetchFromGitLab {
-          domain = "gitlab.freedesktop.org";
-          owner = "Coreforge";
-          repo = "monado";
-          rev = "16792a6f26210faca082d192a8fa9fbf625ab1d9";
-          hash = "sha256-M7bjfHS4h0GQ/77PuIxEVvhFZl4dDPVas19/oSfoGCk=";
-        };
+          src = pkgs.fetchFromGitLab {
+            domain = "gitlab.freedesktop.org";
+            owner = "Coreforge";
+            repo = "monado";
+            rev = "16792a6f26210faca082d192a8fa9fbf625ab1d9";
+            hash = "sha256-M7bjfHS4h0GQ/77PuIxEVvhFZl4dDPVas19/oSfoGCk=";
+          };
           nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
           propagatedBuildInputs = (oldAttrs.propagatedBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
           postFixup = ''
@@ -118,13 +118,13 @@
       let
         monado = pkgs.monado.overrideAttrs (oldAttrs: {
           pname = "monado-pimax"; # optional but helps distinguishing between packages
-        src = pkgs.fetchFromGitLab {
-          domain = "gitlab.freedesktop.org";
-          owner = "Coreforge";
-          repo = "monado";
-          rev = "16792a6f26210faca082d192a8fa9fbf625ab1d9";
-          hash = "sha256-M7bjfHS4h0GQ/77PuIxEVvhFZl4dDPVas19/oSfoGCk=";
-        };
+          src = pkgs.fetchFromGitLab {
+            domain = "gitlab.freedesktop.org";
+            owner = "Coreforge";
+            repo = "monado";
+            rev = "16792a6f26210faca082d192a8fa9fbf625ab1d9";
+            hash = "sha256-M7bjfHS4h0GQ/77PuIxEVvhFZl4dDPVas19/oSfoGCk=";
+          };
           nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
           propagatedBuildInputs = (oldAttrs.propagatedBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
           postFixup = ''
@@ -150,7 +150,7 @@
 
     xdg.configFile."openvr/openvrpaths.vrpath".text =
       let
-        opencomposite = pkgs.opencomposite;
+        xrizer = pkgs.xrizer;
         #opencomposite = pkgs.opencomposite.overrideAttrs (
         #finalAttrs: previousAttrs: {
         #  src = pkgs.fetchFromGitLab {
@@ -183,7 +183,7 @@
           ],
           "runtime" :
           [
-            "${opencomposite}/lib/opencomposite"
+            "${xrizer}/lib/xrizer"
           ],
           "version" : 1
         }
