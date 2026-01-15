@@ -39,7 +39,7 @@
       "quiet"
     ];
     kernel.sysctl."kernel.sysrq" = 502; # REISUB
-    kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-lts-lto; # cachyosKernels.linuxPackages-cachyos-latest-lto # CatchyOS kernel with link-time optimisation https://wiki.cachyos.org/features/kernel/
+    kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-lts-lto; # CatchyOS kernel with link-time optimisation https://wiki.cachyos.org/features/kernel/
     extraModulePackages = with config.boot.kernelPackages; [
       v4l2loopback
       #amdgpu-i2c
@@ -81,12 +81,6 @@
     # firewall.allowedUDPPorts = [ ... ];
     # Or disable the firewall altogether.
     firewall.enable = false;
-
-    # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-
-    # Configure network proxy if necessary
-    # networking.proxy.default = "http://user:password@proxy:port/";
-    # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
   };
 
   # Set your time zone.
@@ -110,8 +104,7 @@
 
   services.pulseaudio.enable = false;
 
-  # TODO re-enable
-  #hardware.new-lg4ff.enable = true;
+  hardware.new-lg4ff.enable = true;
   hardware.flipperzero.enable = true;
   hardware.openrazer = {
     enable = true;
@@ -203,9 +196,9 @@
     distrobox
     unrar
     android-tools
-    nfs-utils
     usbutils
     yt-dlp
+    dig
 
     #shared folder for VM
     virtiofsd
@@ -221,7 +214,6 @@
     lutris
     prismlauncher
     r2modman
-    osu-lazer-bin
     bs-manager
 
     # chat
@@ -231,49 +223,21 @@
 
     # emulators
     dolphin-emu
-    #(dolphin-emu.overrideAttrs (oldAttrs: {
-    #  pname = "dolphin-xr";
-    #  src = pkgs.fetchFromGitHub {
-    #    owner = "mxmstr";
-    #    repo = "dolphin";
-    #    rev = "4face6cb1c5ef15c024a72943a147ba34d5ebfb2";
-    #    hash = "sha256-WnxbDfbbJYuJNIbHmVo0hdA47Zw+MNa/ka00FkiAE+c=";
-    #    fetchSubmodules = true;
-    #    leaveDotGit = true;
-    #    postFetch = ''
-    #      pushd $out
-    #      git rev-parse HEAD 2>/dev/null >$out/COMMIT
-    #      find $out -name .git -print0 | xargs -0 rm -rf
-    #      popd
-    #    '';
-    #    nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.openvr ];
-    #  };
-    #}))
     # here lies citra and yuzu...
     ryubing
     xemu
-    #cemu
-    #inputs.qemu-applesilicon.legacyPackages.${pkgs.system}.qemu-applesilicon # is this an emaulator?
+    cemu
 
     # kde apps that should be installed by default
     kdePackages.kate
     kdePackages.kdenetwork-filesharing
     kdePackages.kcalc
-    #k3b - broken?
+    k3b
     kdePackages.ktorrent
     kdePackages.qtwebsockets # needed for https://github.com/korapp/plasma-homeassistant
 
     # windows compatability - wine and proton stuff
     wineWowPackages.stable
-    #(wineWowPackages.unstable.overrideAttrs (oldAttrs: {
-    #  pname = "wineGDK";
-    #  src = pkgs.fetchFromGitHub {
-    #    owner = "Weather-OS";
-    #    repo = "WineGDK";
-    #    rev = "8ccf89706b2109b0908e1503c1de0051dcc9caa9";
-    #    hash = "sha256-H3cgv+DxixbzBmNiflk3Wd9xGGDJuXQVh++2C5vIcOw=";
-    #  };
-    #}))
     winetricks
     protontricks
 
@@ -333,19 +297,13 @@
       ppkgs.cffi
       ppkgs.stupidartnet
     ]))
-    libusb1
-
-    hidapi
     jetbrains.pycharm-professional
     jetbrains.clion
-    nodejs
+    jetbrains.idea
     #TODO uncomment when fixed https://github.com/NixOS/nixpkgs/issues/418451
-    #unityhub # installed 2022.3.6f1 using the uri: unityhub://2022.3.6f1/b9e6e7e9fa2d
+    unityhub # installed 2022.3.6f1 using the uri: unityhub://2022.3.6f1/b9e6e7e9fa2d
 
     # other
-    #(firefox.overrideAttrs (oldAttrs: {
-    #  patches = (oldAttrs.patches or [ ]) ++ [ patches/firefox/webxr-linux-dmabuf.patch ];
-    #}))
     gimp3
     polychromatic
     ladybird
@@ -360,17 +318,9 @@
     prusa-slicer
     mangohud
     vlc
-    fx-cast-bridge
     wireshark
     nextcloud-client
     yubioath-flutter
-
-    # development (Crank It Up)
-    #dotnetCorePackages.sdk_6_0
-    xorg.libXi
-    #dotnet-runtime
-    libglvnd
-    udev
 
     (import (builtins.fetchTarball {
       url = "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v2.tar.gz";
