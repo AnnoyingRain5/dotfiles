@@ -187,7 +187,7 @@
     killall
     unzip
     git
-    micro
+    micro-with-wl-clipboard
     gnupg
     htop
     nixpkgs-fmt # mainly used in vscode
@@ -234,6 +234,7 @@
     kdePackages.kcalc
     kdePackages.ktorrent
     kdePackages.qtwebsockets # needed for https://github.com/korapp/plasma-homeassistant
+    kdePackages.sddm-kcm
 
     # windows compatability - wine and proton stuff
     wineWowPackages.stable
@@ -246,13 +247,14 @@
     hunspellDicts.en_AU
 
     # TAFE course
-    blender-hip
+    blender
 
     # programming
     gcc
     rustc
     rustfmt
     cargo
+    nixd # nix LSP server
     clang-tools # for clang-format
     (vscode-with-extensions.override {
       vscodeExtensions = with pkgs.nix-vscode-extensions.vscode-marketplace; [
@@ -351,7 +353,6 @@
     virt-manager.enable = true;
     dconf.enable = true; # requires for home-manager gtk
     wireshark.enable = true;
-    adb.enable = true;
     nix-ld.enable = true;
 
     firefox = {

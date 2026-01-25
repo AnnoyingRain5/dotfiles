@@ -14,6 +14,9 @@
   networking.hostName = "Dragon";
 
   hardware.bluetooth.enable = true;
+  nixpkgs.config = {
+    rocmSupport = true;
+  };
 
   # Enable OpenGL
   hardware.graphics = {

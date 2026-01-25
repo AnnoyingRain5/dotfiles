@@ -39,8 +39,7 @@
   environment.systemPackages = with pkgs; [
     xrizer
     lighthouse-steamvr
-    wlx-overlay-s
-    wayvr-dashboard
+    wayvr
     slimevr
     kaon
   ];
