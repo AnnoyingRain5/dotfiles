@@ -1,7 +1,5 @@
 {
-  config,
   pkgs,
-  inputs,
   nixpkgs-25-11,
   ...
 }:
@@ -25,14 +23,14 @@
   };
 
   system.replaceDependencies.replacements = [
-    ({
+    {
       original = pkgs.mesa;
       replacement = nixpkgs-25-11.mesa;
-    })
-    ({
+    }
+    {
       original = pkgs.mesa.drivers;
       replacement = nixpkgs-25-11.mesa.drivers;
-    })
+    }
   ];
 
   boot.loader.grub.extraEntries = ''

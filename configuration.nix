@@ -140,18 +140,12 @@
         "plugdev"
         "openrazer"
       ];
-      packages = with pkgs; [
-        # using system packages instead
-      ];
     };
     luca = {
       isNormalUser = true;
       initialHashedPassword = "$y$j9T$BmeHPNCIt5arCWvzXqXNC1$JVAMf3j1FTZtD7m5Iq16qEUspVXZqKYGF835qmU7jy2";
       description = "Luca Tails";
       extraGroups = [ "networkmanager" ];
-      packages = with pkgs; [
-        # using home-manager
-      ];
     };
   };
 
@@ -323,7 +317,7 @@
     nextcloud-client
     yubioath-flutter
 
-    (import (builtins.fetchTarball {
+    (import (fetchTarball {
       url = "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v2.tar.gz";
       sha256 = "sha256:0g08rc92q9n5vvnr2w51alr1z38nf12c23frzjag25xf3g4qw6p4";
     }) { inherit pkgs; }).discord-krisp-patcher
@@ -516,7 +510,7 @@
       corefonts
       vista-fonts
       unifont
-      (import (builtins.fetchTarball {
+      (import (fetchTarball {
         url = "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v2.tar.gz";
         sha256 = "sha256:0g08rc92q9n5vvnr2w51alr1z38nf12c23frzjag25xf3g4qw6p4";
       }) { inherit pkgs; }).avali-scratch
