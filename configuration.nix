@@ -51,8 +51,6 @@
     plymouth = {
       enable = true;
       plymouth-minecraft-theme.enable = true;
-      #themePackages = [ pkgs.plymouth-minecraft-theme ];
-      #theme = "mc";
     };
 
     loader = {
