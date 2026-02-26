@@ -18,8 +18,9 @@
     ./vr.nix
     ./plasma-env-speedup.nix
   ];
+
   nixpkgs.overlays = [
-    inputs.minecraft-plymouth.overlay
+    #inputs.minecraft-plymouth.overlay
     inputs.nix-vscode-extensions.overlays.default
     inputs.nix-cachyos-kernel.overlay
   ];
@@ -39,7 +40,8 @@
       "quiet"
     ];
     kernel.sysctl."kernel.sysrq" = 502; # REISUB
-    kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-lts-lto; # CatchyOS kernel with link-time optimisation https://wiki.cachyos.org/features/kernel/
+    # CatchyOS kernel with link-time optimisation https://wiki.cachyos.org/features/kernel/
+    kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-lts-lto;
     extraModulePackages = with config.boot.kernelPackages; [
       v4l2loopback
       #amdgpu-i2c
@@ -48,8 +50,9 @@
     supportedFilesystems = [ "nfs" ];
     plymouth = {
       enable = true;
-      themePackages = [ pkgs.plymouth-minecraft-theme ];
-      theme = "mc";
+      plymouth-minecraft-theme.enable = true;
+      #themePackages = [ pkgs.plymouth-minecraft-theme ];
+      #theme = "mc";
     };
 
     loader = {
@@ -211,7 +214,31 @@
     bs-manager
 
     # chat
-    discord-canary
+    # stolen from chaotic-nyx https://github.com/chaotic-cx/nyx/blob/main/pkgs/discord-krisp/default.nix
+    (
+      let
+        patch-krisp = writers.writePython3 "krisp-patcher" {
+          libraries = with python3Packages; [
+            capstone
+            pyelftools
+          ];
+          flakeIgnore = [
+            "E501"
+            "F403"
+            "F405"
+          ];
+        } (builtins.readFile ./scripts/krisp-patcher.py);
+        binaryName = "DiscordCanary";
+        node_module = "\\$HOME/.config/discordcanary/${discord-canary.version}/modules/discord_krisp/discord_krisp.node";
+      in
+      discord-canary.overrideAttrs (previousAttrs: {
+        postInstall = previousAttrs.postInstall + ''
+          wrapProgramShell $out/opt/${binaryName}/${binaryName} \
+          --run "${patch-krisp} ${node_module}"
+        '';
+        passthru = removeAttrs previousAttrs.passthru [ "updateScript" ];
+      })
+    )
     telegram-desktop
     thunderbird
 
@@ -250,6 +277,7 @@
     cargo
     nixd # nix LSP server
     clang-tools # for clang-format
+    bin2c
     (vscode-with-extensions.override {
       vscodeExtensions = with pkgs.nix-vscode-extensions.vscode-marketplace; [
         ms-vsliveshare.vsliveshare
@@ -316,7 +344,6 @@
     wireshark
     nextcloud-client
     yubioath-flutter
-
     (import (fetchTarball {
       url = "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v2.tar.gz";
       sha256 = "sha256:0g08rc92q9n5vvnr2w51alr1z38nf12c23frzjag25xf3g4qw6p4";
@@ -336,7 +363,22 @@
       extraCompatPackages = [
         pkgs.proton-ge-bin
         pkgs.steam-play-none
-        pkgs.proton-ge-rtsp-bin
+
+        (
+          (pkgs.proton-ge-bin.override {
+            steamDisplayName = "GE-Proton-GDK";
+          }).overrideAttrs
+          (
+            finalAttrs: _: {
+              pname = "proton-ge-gdk-bin";
+              version = "GE-Proton10-25";
+              src = fetchTarball {
+                url = "https://github.com/Weather-OS/GDK-Proton/releases/download/release/GE-Proton10-25.tar.gz";
+                sha256 = "sha256:08zfm1ipj957ln4i34dslg2dsmwnhw63pk3q08zdrlnz7ck6ja6r";
+              };
+            }
+          )
+        )
       ];
       gamescopeSession = {
         enable = true;
@@ -382,7 +424,7 @@
 
     java = {
       enable = true;
-      package = (pkgs.jdk.override { enableJavaFX = true; });
+      package = pkgs.jdk25;
     };
 
     gnupg.agent = {

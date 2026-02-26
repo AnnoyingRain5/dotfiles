@@ -18,7 +18,7 @@
     qemu-applesilicon.url = "github:onny/nixpkgs/qemu-applesilicon";
 
     minegrub-theme.url = "github:Lxtharia/minegrub-theme";
-    minecraft-plymouth.url = "github:AnnoyingRain5/minecraft-plymouth-theme/fix-nix";
+    minecraft-plymouth.url = "github:nikp123/minecraft-plymouth-theme";
 
     stardust.url = "github:StardustXR/server";
     nixpkgs-xr.url = "github:nix-community/nixpkgs-xr";
@@ -45,7 +45,7 @@
     {
       nixosConfigurations = {
 
-        Blaze = nixpkgs.lib.nixosSystem rec {
+        Blaze = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           specialArgs = {
             inherit inputs;
@@ -82,6 +82,7 @@
             flatpaks.nixosModules.default
             nixpkgs-xr.nixosModules.nixpkgs-xr
             minegrub-theme.nixosModules.default
+            minecraft-plymouth.nixosModules.default
             home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
