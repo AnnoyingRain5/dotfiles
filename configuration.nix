@@ -41,7 +41,7 @@
     ];
     kernel.sysctl."kernel.sysrq" = 502; # REISUB
     # CatchyOS kernel with link-time optimisation https://wiki.cachyos.org/features/kernel/
-    kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-lts-lto;
+    kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest;
     extraModulePackages = with config.boot.kernelPackages; [
       v4l2loopback
       #amdgpu-i2c
@@ -122,6 +122,9 @@
       members = [ "annoyingrains" ];
     };
     samba = {
+      members = [ "annoyingrains" ];
+    };
+    dialout = {
       members = [ "annoyingrains" ];
     };
   };

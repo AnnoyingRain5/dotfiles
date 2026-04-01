@@ -22,16 +22,16 @@
     enable32Bit = true;
   };
 
-  system.replaceDependencies.replacements = [
-    {
-      original = pkgs.mesa;
-      replacement = nixpkgs-25-11.mesa;
-    }
-    {
-      original = pkgs.mesa.drivers;
-      replacement = nixpkgs-25-11.mesa.drivers;
-    }
-  ];
+  #system.replaceDependencies.replacements = [
+  #  {
+  #    original = pkgs.mesa;
+  #    replacement = nixpkgs-25-11.mesa;
+  #  }
+  #  {
+  #    original = pkgs.mesa.drivers;
+  #    replacement = nixpkgs-25-11.mesa.drivers;
+  #  }
+  #];
 
   boot.loader.grub.extraEntries = ''
       menuentry "MacOS" {
@@ -44,7 +44,7 @@
   hardware.amdgpu.opencl.enable = true;
   #hardware.amdgpu.overdrive.ppfeaturemask = "0xffffffff";
   #services.lact.enable = true;
-  programs.corectrl.enable = true;
+  #programs.corectrl.enable = true;
 
   boot.kernelPatches = [
     {

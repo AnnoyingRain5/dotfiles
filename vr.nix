@@ -17,10 +17,10 @@
         pname = "monado-pimax"; # optional but helps distinguishing between packages
         src = pkgs.fetchFromGitLab {
           domain = "gitlab.freedesktop.org";
-          owner = "Coreforge";
+          owner = "AnnoyingRain5";
           repo = "monado";
-          rev = "16792a6f26210faca082d192a8fa9fbf625ab1d9";
-          hash = "sha256-M7bjfHS4h0GQ/77PuIxEVvhFZl4dDPVas19/oSfoGCk=";
+          rev = "b347eded0f2c012103754c7533651d7b6083131c";
+          hash = "sha256-/47Hm+kWXCMKEA1W/SioYk92uB0k1tusk1FudsVJJMQ=";
         };
         nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
         propagatedBuildInputs = (oldAttrs.propagatedBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
@@ -28,7 +28,7 @@
           patchelf $out/bin/monado-service --add-rpath ${pkgs.libgbinder}/lib
         '';
         patches = (oldAttrs.patches or [ ]) ++ [
-          patches/monado-waydroid.patch
+          #patches/monado-waydroid.patch
         ];
       })
     );
@@ -51,6 +51,7 @@
     environment = {
       STEAMVR_LH_ENABLE = "true";
       XRT_COMPOSITOR_COMPUTE = "1";
+      #PIMAX_REBOOT = "true";
       #XRT_COMPOSITOR_SCALE_PERCENTAGE = "110";
     };
   };

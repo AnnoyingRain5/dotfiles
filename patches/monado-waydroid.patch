@@ -1,24 +1,24 @@
-From 9557ba9253bee920dd961a8610c7630e63035d72 Mon Sep 17 00:00:00 2001
+From ad59a51442a3f0e6135820465fc510d0f87f3b68 Mon Sep 17 00:00:00 2001
 From: rcelyte <rcelyte@battletrains.org>
 Date: Fri, 20 Sep 2024 13:25:40 +0000
 Subject: [PATCH] Waydroid
 
 ---
- CMakeLists.txt                                |  8 +-
- .../include/xrt/xrt_config_build.h.cmake_in   |  1 +
- src/xrt/ipc/CMakeLists.txt                    |  4 +
- .../org/freedesktop/monado/ipc/Client.java    |  5 +
- src/xrt/ipc/server/ipc_server.h               | 19 ++++
- .../ipc/server/ipc_server_mainloop_linux.c    | 98 +++++++++++++++++++
- .../src/main/AndroidManifest.xml              |  2 +-
- src/xrt/targets/openxr_android/build.gradle   |  3 +-
- 8 files changed, 137 insertions(+), 3 deletions(-)
+ CMakeLists.txt                                |   8 +-
+ .../include/xrt/xrt_config_build.h.cmake_in   |   1 +
+ src/xrt/ipc/CMakeLists.txt                    |   4 +
+ .../org/freedesktop/monado/ipc/Client.java    |   5 +
+ src/xrt/ipc/server/ipc_server.h               |  20 ++++
+ .../ipc/server/ipc_server_mainloop_linux.c    | 101 ++++++++++++++++++
+ .../src/main/AndroidManifest.xml              |   2 +-
+ src/xrt/targets/openxr_android/build.gradle   |   3 +-
+ 8 files changed, 141 insertions(+), 3 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index bacc19b0a1..3742d27952 100644
+index fcc05a45ba..74e34a6ad7 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -41,7 +41,7 @@ if(NOT WIN32 AND NOT ANDROID)
+@@ -47,7 +47,7 @@ if(NOT WIN32 AND NOT ANDROID)
  		)
  endif()
  
@@ -27,7 +27,7 @@ index bacc19b0a1..3742d27952 100644
  set(CMAKE_C_STANDARD_REQUIRED ON)
  
  set(CMAKE_CXX_STANDARD 20)
-@@ -173,6 +173,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+@@ -188,6 +188,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
  		pkg_search_module(WAYLAND_SCANNER wayland-scanner)
  		pkg_search_module(WAYLAND_PROTOCOLS wayland-protocols)
  		pkg_search_module(LIBDRM IMPORTED_TARGET libdrm)
@@ -36,7 +36,7 @@ index bacc19b0a1..3742d27952 100644
  	endif()
  	find_package(OpenGL COMPONENTS GLX)
  	pkg_search_module(DBUS dbus-1)
-@@ -239,6 +241,7 @@ option_with_deps(XRT_HAVE_LIBBSD "Enable libbsd support" DEPENDS LIBBSD_FOUND)
+@@ -254,6 +256,7 @@ option_with_deps(XRT_HAVE_LIBBSD "Enable libbsd support" DEPENDS LIBBSD_FOUND)
  option_with_deps(XRT_HAVE_LIBUDEV "Enable libudev (used for device probing on Linux)" DEPENDS UDEV_FOUND)
  option_with_deps(XRT_HAVE_PERCETTO "Enable percetto support" DEPENDS PERCETTO_FOUND)
  option_with_deps(XRT_HAVE_SYSTEMD "Enable systemd support" DEPENDS Systemd_FOUND)
@@ -44,7 +44,7 @@ index bacc19b0a1..3742d27952 100644
  
  # Only use system cJSON if it includes https://github.com/DaveGamble/cJSON/pull/377
  option_with_deps(XRT_HAVE_SYSTEM_CJSON "Enable cJSON from system, instead of bundled source" DEPENDS CJSON_FOUND "cJSON_VERSION VERSION_GREATER_EQUAL 1.7.13")
-@@ -269,6 +272,7 @@ set(XRT_FEATURE_OPENXR_DEBUG_UTILS OFF) # Has never been enabled
+@@ -283,6 +286,7 @@ set(XRT_FEATURE_OPENXR_DEBUG_UTILS OFF) # Has never been enabled
  option_with_deps(XRT_FEATURE_RENDERDOC "Enable RenderDoc API" DEPENDS "RT_LIBRARY OR WIN32 OR ANDROID")
  option_with_deps(XRT_FEATURE_SERVICE "Enable separate service module for OpenXR runtime" DEPENDS XRT_MODULE_IPC XRT_FEATURE_OPENXR)
  option_with_deps(XRT_FEATURE_SERVICE_SYSTEMD "Enable systemd socket activation of the service" DEPENDS XRT_HAVE_SYSTEMD XRT_FEATURE_SERVICE)
@@ -52,7 +52,7 @@ index bacc19b0a1..3742d27952 100644
  option_with_deps(XRT_FEATURE_SLAM "Enable SLAM tracking support" DEPENDS XRT_HAVE_OPENCV XRT_HAVE_LINUX)
  option(XRT_FEATURE_SSE2 "Build using SSE2 instructions, if building for 32-bit x86" ON)
  option_with_deps(XRT_FEATURE_STEAMVR_PLUGIN "Build SteamVR plugin" DEPENDS "NOT ANDROID")
-@@ -568,6 +572,7 @@ message(STATUS "#    OPENVR:          ${XRT_HAVE_OPENVR}")
+@@ -596,6 +600,7 @@ message(STATUS "#    OPENVR:          ${XRT_HAVE_OPENVR}")
  message(STATUS "#    SDL2:            ${XRT_HAVE_SDL2}")
  message(STATUS "#    SYSTEM_CJSON:    ${XRT_HAVE_SYSTEM_CJSON}")
  message(STATUS "#    SYSTEMD:         ${XRT_HAVE_SYSTEMD}")
@@ -60,7 +60,7 @@ index bacc19b0a1..3742d27952 100644
  message(STATUS "#    TRACY:           ${XRT_HAVE_TRACY}")
  message(STATUS "#    VULKAN:          ${XRT_HAVE_VULKAN}")
  message(STATUS "#    WAYLAND:         ${XRT_HAVE_WAYLAND}")
-@@ -629,6 +634,7 @@ message(STATUS "#    FEATURE_OPENXR_XDEV_SPACE:                     ${XRT_FEATUR
+@@ -622,6 +627,7 @@ message(STATUS "#    FEATURE_OPENXR:                                ${XRT_FEATUR
  message(STATUS "#    FEATURE_RENDERDOC:                             ${XRT_FEATURE_RENDERDOC}")
  message(STATUS "#    FEATURE_SERVICE:                               ${XRT_FEATURE_SERVICE}")
  message(STATUS "#    FEATURE_SERVICE_SYSTEMD:                       ${XRT_FEATURE_SERVICE_SYSTEMD}")
@@ -69,10 +69,10 @@ index bacc19b0a1..3742d27952 100644
  message(STATUS "#    FEATURE_SSE2:                                  ${XRT_FEATURE_SSE2}")
  message(STATUS "#    FEATURE_STEAMVR_PLUGIN:                        ${XRT_FEATURE_STEAMVR_PLUGIN}")
 diff --git a/src/xrt/include/xrt/xrt_config_build.h.cmake_in b/src/xrt/include/xrt/xrt_config_build.h.cmake_in
-index 9b1255e896..42f7836098 100644
+index 40a4ea6ffc..e0dad23db8 100644
 --- a/src/xrt/include/xrt/xrt_config_build.h.cmake_in
 +++ b/src/xrt/include/xrt/xrt_config_build.h.cmake_in
-@@ -74,6 +74,7 @@
+@@ -82,6 +82,7 @@
  #cmakedefine XRT_FEATURE_RENDERDOC
  #cmakedefine XRT_FEATURE_SERVICE
  #cmakedefine XRT_FEATURE_SERVICE_SYSTEMD
@@ -81,10 +81,10 @@ index 9b1255e896..42f7836098 100644
  #cmakedefine XRT_FEATURE_SSE2
  #cmakedefine XRT_FEATURE_STEAMVR_PLUGIN
 diff --git a/src/xrt/ipc/CMakeLists.txt b/src/xrt/ipc/CMakeLists.txt
-index a2d50fbd22..6584ae0e28 100644
+index 21ad6031e5..8187ee6c08 100644
 --- a/src/xrt/ipc/CMakeLists.txt
 +++ b/src/xrt/ipc/CMakeLists.txt
-@@ -138,6 +138,10 @@ elseif(XRT_HAVE_LINUX)
+@@ -170,6 +170,10 @@ elseif(XRT_HAVE_LINUX)
  	target_sources(
  		ipc_server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/server/ipc_server_mainloop_linux.c
  		)
@@ -112,10 +112,10 @@ index 584cedbc4c..e4be1a23c4 100644
              if (!bind(context_, packageName)) {
                  Log.e(TAG, "Bind failed immediately");
 diff --git a/src/xrt/ipc/server/ipc_server.h b/src/xrt/ipc/server/ipc_server.h
-index 493d5990b0..8ce000c4ab 100644
+index e68ad9aafc..cc716770f9 100644
 --- a/src/xrt/ipc/server/ipc_server.h
 +++ b/src/xrt/ipc/server/ipc_server.h
-@@ -25,6 +25,10 @@
+@@ -28,6 +28,10 @@
  
  #include <stdio.h>
  
@@ -126,13 +126,14 @@ index 493d5990b0..8ce000c4ab 100644
  
  #ifdef __cplusplus
  extern "C" {
-@@ -291,6 +295,21 @@ struct ipc_server_mainloop
+@@ -316,6 +320,22 @@ struct ipc_server_mainloop
  #ifndef XRT_IPC_GOT_IMPL
  #error "Need port"
  #endif
 +
 +#if defined(XRT_OS_LINUX) && defined(XRT_FEATURE_SERVICE_BINDER)
 +	void *libgbinder_so;
++	typeof(g_main_context_iteration) *pfn_g_main_context_iteration;
 +	typeof(gbinder_local_object_new_reply) *pfn_gbinder_local_object_new_reply;
 +	typeof(gbinder_local_object_unref) *pfn_gbinder_local_object_unref;
 +	typeof(gbinder_local_reply_append_int32) *pfn_gbinder_local_reply_append_int32;
@@ -149,10 +150,10 @@ index 493d5990b0..8ce000c4ab 100644
  
  /*!
 diff --git a/src/xrt/ipc/server/ipc_server_mainloop_linux.c b/src/xrt/ipc/server/ipc_server_mainloop_linux.c
-index d364fbed38..b0ffa41e4e 100644
+index 36bf3e31dc..8b21ea8fb4 100644
 --- a/src/xrt/ipc/server/ipc_server_mainloop_linux.c
 +++ b/src/xrt/ipc/server/ipc_server_mainloop_linux.c
-@@ -46,6 +46,10 @@
+@@ -47,6 +47,10 @@
  #include <systemd/sd-daemon.h>
  #endif
  
@@ -160,21 +161,23 @@ index d364fbed38..b0ffa41e4e 100644
 +#include <dlfcn.h>
 +#endif
 +
+ 
  /*
-  * "XRT_NO_STDIN" option disables stdin and prevents monado-service from terminating.
-  * This could be useful for situations where there is no proper or in a non-interactive shell.
-@@ -250,6 +254,10 @@ ipc_server_mainloop_poll(struct ipc_server *vs, struct ipc_server_mainloop *ml)
+  *
+@@ -243,6 +247,12 @@ ipc_server_mainloop_poll(struct ipc_server *vs, struct ipc_server_mainloop *ml)
  		return;
  	}
  
 +	#ifdef XRT_FEATURE_SERVICE_BINDER
-+	g_main_context_iteration(NULL, false);
++	if (ml->pfn_g_main_context_iteration != NULL) {
++		ml->pfn_g_main_context_iteration(NULL, false);
++	}
 +	#endif
 +
  	for (int i = 0; i < ret; i++) {
  		// If we get data on stdin, stop.
  		if (events[i].data.fd == 0) {
-@@ -264,6 +272,44 @@ ipc_server_mainloop_poll(struct ipc_server *vs, struct ipc_server_mainloop *ml)
+@@ -257,6 +267,44 @@ ipc_server_mainloop_poll(struct ipc_server *vs, struct ipc_server_mainloop *ml)
  	}
  }
  
@@ -217,9 +220,9 @@ index d364fbed38..b0ffa41e4e 100644
 +#endif
 +
  int
- ipc_server_mainloop_init(struct ipc_server_mainloop *ml)
+ ipc_server_mainloop_init(struct ipc_server_mainloop *ml, bool no_stdin)
  {
-@@ -275,6 +321,48 @@ ipc_server_mainloop_init(struct ipc_server_mainloop *ml)
+@@ -268,6 +316,49 @@ ipc_server_mainloop_init(struct ipc_server_mainloop *ml, bool no_stdin)
  		return ret;
  	}
  
@@ -239,6 +242,7 @@ index d364fbed38..b0ffa41e4e 100644
 +				break; \
 +			} \
 +		}
++		LOAD_PROC(g_main_context_iteration)
 +		LOAD_PROC(gbinder_local_object_new_reply)
 +		LOAD_PROC(gbinder_local_object_unref)
 +		LOAD_PROC(gbinder_local_reply_append_int32)
@@ -265,10 +269,10 @@ index d364fbed38..b0ffa41e4e 100644
 +	} while(false);
 +	#endif
 +
- 	ret = init_epoll(ml);
+ 	ret = init_epoll(ml, no_stdin);
  	if (ret < 0) {
  		ipc_server_mainloop_deinit(ml);
-@@ -291,6 +379,16 @@ ipc_server_mainloop_deinit(struct ipc_server_mainloop *ml)
+@@ -284,6 +375,16 @@ ipc_server_mainloop_deinit(struct ipc_server_mainloop *ml)
  	if (ml == NULL) {
  		return;
  	}
@@ -286,7 +290,7 @@ index d364fbed38..b0ffa41e4e 100644
  		// Close socket on exit
  		close(ml->listen_socket);
 diff --git a/src/xrt/targets/android_common/src/main/AndroidManifest.xml b/src/xrt/targets/android_common/src/main/AndroidManifest.xml
-index 2791bf06b8..0d47656a39 100644
+index 7f42162e7a..91df019162 100644
 --- a/src/xrt/targets/android_common/src/main/AndroidManifest.xml
 +++ b/src/xrt/targets/android_common/src/main/AndroidManifest.xml
 @@ -42,7 +42,7 @@
@@ -299,10 +303,10 @@ index 2791bf06b8..0d47656a39 100644
          android:theme="@style/AppTheme">
          <!-- Main "about" activity -->
 diff --git a/src/xrt/targets/openxr_android/build.gradle b/src/xrt/targets/openxr_android/build.gradle
-index 434efca8e5..299adadd9f 100644
+index 608bae980d..7ef3a159d2 100644
 --- a/src/xrt/targets/openxr_android/build.gradle
 +++ b/src/xrt/targets/openxr_android/build.gradle
-@@ -230,6 +230,7 @@ android {
+@@ -248,6 +248,7 @@ android {
              dimension 'deployment'
              applicationIdSuffix '.out_of_process'
              externalNativeBuild.cmake.arguments += "-DXRT_FEATURE_SERVICE=ON"
@@ -310,7 +314,7 @@ index 434efca8e5..299adadd9f 100644
              externalNativeBuild.cmake.targets "openxr_monado", "monado-service"
  
              buildConfigField "boolean", "inProcess", "false"
-@@ -251,7 +252,7 @@ android {
+@@ -269,7 +270,7 @@ android {
              excludes += ['META-INF/*.kotlin_module']
          }
          jniLibs {
