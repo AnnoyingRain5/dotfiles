@@ -1,6 +1,4 @@
 {
-  pkgs,
-  nixpkgs-25-11,
   ...
 }:
 
@@ -22,17 +20,6 @@
     enable32Bit = true;
   };
 
-  #system.replaceDependencies.replacements = [
-  #  {
-  #    original = pkgs.mesa;
-  #    replacement = nixpkgs-25-11.mesa;
-  #  }
-  #  {
-  #    original = pkgs.mesa.drivers;
-  #    replacement = nixpkgs-25-11.mesa.drivers;
-  #  }
-  #];
-
   boot.loader.grub.extraEntries = ''
       menuentry "MacOS" {
         search --fs-uuid --set=root 1C84-9E88
@@ -40,10 +27,10 @@
     }
   '';
 
-  #hardware.amdgpu.overdrive.enable = true;
+  hardware.amdgpu.overdrive.enable = true;
   hardware.amdgpu.opencl.enable = true;
   #hardware.amdgpu.overdrive.ppfeaturemask = "0xffffffff";
-  #services.lact.enable = true;
+  services.lact.enable = true;
   #programs.corectrl.enable = true;
 
   boot.kernelPatches = [

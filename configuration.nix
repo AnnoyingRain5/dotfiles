@@ -245,6 +245,30 @@
 
     # emulators
     dolphin-emu
+    #(dolphin-emu.overrideAttrs (oldattrs: {
+    #  pname = "dolphin-xr";
+    #  buildInputs = (oldattrs.buildInputs or [ ]) ++ [ openxr-loader ];
+    #  src = pkgs.fetchFromGitHub {
+    #    owner = "AnnoyingRain5";
+    #    repo = "dolphinXR";
+    #    rev = "7486f8ec05621f658eb6422c0e42ece96d303491";
+    #    hash = "sha256-2Zyw8kj0Zc2YrmZbqW2Ai3YQdUGOJR01beH13LkJBCc=";
+    #    fetchSubmodules = true;
+    #    deepClone = false;
+    #    leaveDotGit = true;
+    #    postFetch = ''
+    #      pushd $out
+    #      git rev-parse HEAD 2>/dev/null >$out/COMMIT
+    #      find $out -name .git -print0 | xargs -0 rm -rf
+    #      popd
+    #    '';
+    #  };
+    #  postPatch = ''
+    #    # Remove the OpenXR submodule directory so it uses system package instead
+    #    rm -rf Externals/OpenXR
+    #  '';
+    #
+    #}))
     # here lies citra and yuzu...
     ryubing
     xemu
@@ -293,14 +317,14 @@
         geequlim.godot-tools
         rust-lang.rust-analyzer
         github.vscode-github-actions
-        visualstudioexptteam.vscodeintellicode
+        github.copilot-chat # apparently this replaces intellicode?????
         visualstudioexptteam.intellicode-api-usage-examples
         wokwi.wokwi-vscode
         # ms-dotnettools.csdevkit # this seems to be broken?
         # ms-dotnettools.vscodeintellicode-csharp # also broken ):
         wholroyd.jinja
         yandeu.five-server
-        #ms-python.vscode-pylance
+        ms-python.vscode-pylance
         ms-python.python
         ms-python.debugpy
         qwtel.sqlite-viewer
@@ -350,6 +374,8 @@
       sha256 = "sha256:0g08rc92q9n5vvnr2w51alr1z38nf12c23frzjag25xf3g4qw6p4";
     }) { inherit pkgs; }).discord-krisp-patcher
   ];
+
+  # does this even do anything on plasma?
   xdg.portal = {
     enable = true;
   };
@@ -394,9 +420,18 @@
 
     firefox = {
       enable = true;
-      package =
-        inputs.flake-firefox-nightly.packages.${pkgs.stdenv.hostPlatform.system}.firefox-nightly-bin;
+      package = (
+        (inputs.flake-firefox-nightly.packages.${pkgs.stdenv.hostPlatform.system}.firefox-nightly-bin)
+        .overrideAttrs
+          (oldAttrs: {
+            desktopItem = oldAttrs.desktopItem.override {
+              icon = ./dotfiles/firefox-custom.png;
+            };
+          })
+      );
+
       nativeMessagingHosts.packages = [ pkgs.firefoxpwa ];
+
     };
 
     appimage = {
@@ -469,6 +504,7 @@
     # rule 3: G29 racing wheel
     # rule 4, 5: pimax 5kx
     # rule 6, 7, 8: xbox 360 kinect
+    # rules 9, 10, 11: quest 1
     udev.extraRules = ''
       SUBSYSTEMS=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0660", TAG+="uaccess"
 
@@ -482,6 +518,10 @@
       SUBSYSTEMS=="usb", ATTRS{idVendor}=="045e", ATTRS{idProduct}=="02b0" MODE="777", TAG+="uaccess"
       SUBSYSTEMS=="usb", ATTRS{idVendor}=="045e", ATTRS{idProduct}=="02ad" MODE="777", TAG+="uaccess"
       SUBSYSTEMS=="usb", ATTRS{idVendor}=="045e", ATTRS{idProduct}=="02ae" MODE="777", TAG+="uaccess"
+
+      SUBSYSTEM=="usb", ATTR{idVendor}=="2833", MODE="[]", GROUP="adbusers", TAG+="uaccess"
+      SUBSYSTEM=="usb", ATTR{idVendor}=="2833", ATTR{idProduct}=="0186", SYMLINK+="android_adb"
+      SUBSYSTEM=="usb", ATTR{idVendor}=="2833", ATTR{idProduct}=="0186", SYMLINK+="android_fastboot"
     '';
 
     # enable Avahi, adds IPP Everywhere support for printing

@@ -1,6 +1,7 @@
 {
   inputs,
   pkgs,
+  lib,
   ...
 }:
 {
@@ -76,6 +77,9 @@
           postFixup = ''
             patchelf $out/bin/monado-service --add-rpath ${pkgs.libgbinder}/lib
           '';
+          cmakeFlags = [
+            (lib.cmakeFeature "GIT_DESC" "Pimax-Fork")
+          ];
           patches = (oldAttrs.patches or [ ]) ++ [
             #patches/monado-waydroid.patch
           ];
@@ -124,6 +128,9 @@
           postFixup = ''
             patchelf $out/bin/monado-service --add-rpath ${pkgs.libgbinder}/lib
           '';
+          cmakeFlags = [
+            (lib.cmakeFeature "GIT_DESC" "Pimax-Fork")
+          ];
           patches = (oldAttrs.patches or [ ]) ++ [
             #patches/monado-waydroid.patch
           ];
@@ -139,46 +146,66 @@
           }
         }
       '';
-
-    xdg.configFile."openvr/openvrpaths.vrpath".text =
+    xdg.configFile."openxr/1/active_runtime.i686.json".source =
       let
-        xrizer = pkgs.xrizer;
-        #opencomposite = pkgs.opencomposite.overrideAttrs (
-        #finalAttrs: previousAttrs: {
-        #  src = pkgs.fetchFromGitLab {
-        #    domain = "gitlab.com";
-        #    owner = "peelz";
-        #   repo = "OpenOVR";
-        #    rev = "0ef5dd023fb196bace7c6edc8588b2dedb113da0";
-        #    hash = "sha256-WG+51mX5gK/yyUikzXT19H/UVk294QD6HgM9zJNC2b0=";
-        #    fetchSubmodules = true;
-        #  };
-        #  buildInputs = previousAttrs.buildInputs ++ [
-        #    pkgs.autoconf
-        #    pkgs.automake
-        #    pkgs.libtool
-        #  ];
-        #}
-        #);
+        p = pkgs.pkgsi686Linux;
+        pkg = pkgs.pkgsi686Linux.monado.overrideAttrs (prev: {
+          pname = "monado-server-lib";
+          nativeBuildInputs = with p; [
+            cmake
+            git
+            glslang
+            pkg-config
+            python3
+          ];
+          buildInputs = with p; [
+            boost
+            eigen
+            glm
+            libdrm
+            nlohmann_json
+            openxr-loader
+            udev
+            vulkan-headers
+            vulkan-loader
+            hidapi
+          ];
+          cmakeFlags = [
+            (lib.cmakeBool "XRT_MODULE_MONADO_CLI" false)
+            (lib.cmakeBool "XRT_MODULE_MONADO_GUI" false)
+            (lib.cmakeBool "XRT_MODULE_COMPOSITOR" true)
+            (lib.cmakeFeature "GIT_DESC" "Pimax-Fork")
+            (lib.cmakeBool "XRT_OPENXR_INSTALL_ABSOLUTE_RUNTIME_PATH" true)
+          ];
+          src = pkgs.fetchFromGitLab {
+            domain = "gitlab.freedesktop.org";
+            owner = "AnnoyingRain5";
+            repo = "monado";
+            rev = "b347eded0f2c012103754c7533651d7b6083131c";
+            hash = "sha256-/47Hm+kWXCMKEA1W/SioYk92uB0k1tusk1FudsVJJMQ=";
+          };
+        });
       in
-      ''
-        {
-          "config" :
-          [
-            "~/.local/share/Steam/config"
-          ],
-          "external_drivers" : null,
-          "jsonid" : "vrpathreg",
-          "log" :
-          [
-            "~/.local/share/Steam/logs"
-          ],
-          "runtime" :
-          [
-            "${xrizer}/lib/xrizer"
-          ],
-          "version" : 1
-        }
-      '';
+      "${pkg}/share/openxr/1/openxr_monado.json";
+
+    xdg.configFile."openvr/openvrpaths.vrpath".text = ''
+      {
+        "config" :
+        [
+          "~/.local/share/Steam/config"
+        ],
+        "external_drivers" : null,
+        "jsonid" : "vrpathreg",
+        "log" :
+        [
+          "~/.local/share/Steam/logs"
+        ],
+        "runtime" :
+        [
+          "/run/current-system/sw/lib/xrizer"
+        ],
+        "version" : 1
+      }
+    '';
   };
 }
