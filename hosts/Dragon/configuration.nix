@@ -1,4 +1,5 @@
 {
+  pkgs,
   ...
 }:
 
@@ -18,6 +19,70 @@
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
+  };
+
+  systemd.timers."backup-aurawra01-docker-volumes" = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "* *-*-* 13:00:00 Australia/Sydney";
+      Unit = "backup-aurawra01-docker-volumes.service";
+      Persistent = true;
+      WakeSystem = true;
+    };
+  };
+
+  systemd.services."backup-aurawra01-docker-volumes" = {
+    onFailure = [ "backup-aurawra01-docker-volumes-failure-notify.service" ];
+    path = [
+      pkgs.rsync
+      pkgs.openssh
+    ];
+    script = ''
+      # move current backup to an old backup directory
+      rsync -rhavz --delete --chown annoyingrains --stats \
+        "/mnt/hdd/aurawra archive/aurawra01-docker-volumes-backup/volumes/" \
+        "/mnt/hdd/aurawra archive/aurawra01-docker-volumes-backup/volumes-old/"
+
+      # create new backup from aurawra01
+      rsync -rchavz --delete --chown annoyingrains --stats rains-backup@ssh.aurawra.org:/var/lib/docker/volumes \
+      "/mnt/hdd/aurawra archive/aurawra01-docker-volumes-backup/"
+    '';
+    serviceConfig = {
+      Type = "oneshot";
+      User = "root";
+    };
+  };
+
+  systemd.services."backup-aurawra01-docker-volumes-failure-notify" = {
+    script = ''
+      ${pkgs.libnotify}/bin/notify-send -u critical \
+        "Backup Failed" \
+        "backup-aurawra01-docker-volumes has failed. Check journalctl for details."
+    '';
+    serviceConfig = {
+      Type = "oneshot";
+      User = "annoyingrains";
+      Environment = "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus";
+    };
+  };
+
+  power.ups = {
+    enable = true;
+    mode = "netserver";
+
+    ups.myups = {
+      driver = "usbhid-ups";
+      port = "auto";
+    };
+    upsmon.enable = false;
+
+    users.homeassistant = {
+      passwordFile = "dotfiles/upsmon.passwd";
+    };
+
+    upsd.listen = [
+      { address = "0.0.0.0"; }
+    ];
   };
 
   boot.loader.grub.extraEntries = ''

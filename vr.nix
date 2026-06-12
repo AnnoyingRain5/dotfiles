@@ -20,8 +20,8 @@
           domain = "gitlab.freedesktop.org";
           owner = "AnnoyingRain5";
           repo = "monado";
-          rev = "b347eded0f2c012103754c7533651d7b6083131c";
-          hash = "sha256-/47Hm+kWXCMKEA1W/SioYk92uB0k1tusk1FudsVJJMQ=";
+          rev = "5d638f53145bffe2ecf6b2187452490474927a7b";
+          hash = "sha256-G2Yy2C1BOGUVtUFVPe0nx53rNNEYFk1qBl77Gw0wDWo=";
         };
         nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
         propagatedBuildInputs = (oldAttrs.propagatedBuildInputs or [ ]) ++ [ pkgs.libgbinder ];

@@ -2,7 +2,7 @@
   description = "System flake";
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
-    nixpkgs-25-11.url = "nixpkgs/nixos-25.11";
+    nixpkgs-stable.url = "nixpkgs/nixos-26.05";
     nur.url = "github:nix-community/NUR";
     #nur.inputs.nixpkgs.follows = "nixpkgs";
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel";
@@ -40,7 +40,7 @@
       minegrub-theme,
       minecraft-plymouth,
       nix-cachyos-kernel,
-      nixpkgs-25-11,
+      nixpkgs-stable,
     }@inputs:
     {
       nixosConfigurations = {
@@ -72,7 +72,7 @@
               inherit system;
               config.allowUnfree = true;
             };
-            nixpkgs-25-11 = import nixpkgs-25-11 {
+            nixpkgs-stable = import nixpkgs-stable {
               inherit system;
             };
           };

@@ -23,6 +23,8 @@
     #inputs.minecraft-plymouth.overlay
     inputs.nix-vscode-extensions.overlays.default
     inputs.nix-cachyos-kernel.overlay
+
+    #TODO remove https://github.com/NixOS/nixpkgs/issues/513245
   ];
 
   nix.settings = {
@@ -156,7 +158,7 @@
   # Allow unfree packages
   nixpkgs.config = {
     allowUnfree = true;
-    permittedInsecurePackages = [ "electron-36.9.5" ];
+    permittedInsecurePackages = [ ];
   };
 
   programs.obs-studio = {
@@ -197,6 +199,9 @@
     usbutils
     yt-dlp
     dig
+    whois
+    croc
+    nh
 
     #shared folder for VM
     virtiofsd
@@ -216,30 +221,31 @@
 
     # chat
     # stolen from chaotic-nyx https://github.com/chaotic-cx/nyx/blob/main/pkgs/discord-krisp/default.nix
-    (
-      let
-        patch-krisp = writers.writePython3 "krisp-patcher" {
-          libraries = with python3Packages; [
-            capstone
-            pyelftools
-          ];
-          flakeIgnore = [
-            "E501"
-            "F403"
-            "F405"
-          ];
-        } (builtins.readFile ./scripts/krisp-patcher.py);
-        binaryName = "DiscordCanary";
-        node_module = "\\$HOME/.config/discordcanary/${discord-canary.version}/modules/discord_krisp/discord_krisp.node";
-      in
-      discord-canary.overrideAttrs (previousAttrs: {
-        postInstall = previousAttrs.postInstall + ''
-          wrapProgramShell $out/opt/${binaryName}/${binaryName} \
-          --run "${patch-krisp} ${node_module}"
-        '';
-        passthru = removeAttrs previousAttrs.passthru [ "updateScript" ];
-      })
-    )
+    #(
+    #  let
+    #    patch-krisp = writers.writePython3 "krisp-patcher" {
+    #      libraries = with python3Packages; [
+    #        capstone
+    #        pyelftools
+    #      ];
+    #      flakeIgnore = [
+    #        "E501"
+    #        "F403"
+    #        "F405"
+    #      ];
+    #    } (builtins.readFile ./scripts/krisp-patcher.py);
+    #    binaryName = "DiscordCanary";
+    #    node_module = "\\$HOME/.config/discordcanary/${discord-canary.version}/modules/discord_krisp/discord_krisp.node";
+    #  in
+    #  discord-canary.overrideAttrs (previousAttrs: {
+    #    postInstall = previousAttrs.postInstall + ''
+    #      wrapProgramShell $out/opt/${binaryName}/${binaryName} \
+    #      --run "${patch-krisp} ${node_module}"
+    #    '';
+    #    passthru = removeAttrs previousAttrs.passthru [ "updateScript" ];
+    #  })
+    #)
+    discord-canary
     telegram-desktop
     thunderbird
 
@@ -281,9 +287,10 @@
     kdePackages.ktorrent
     kdePackages.qtwebsockets # needed for https://github.com/korapp/plasma-homeassistant
     kdePackages.sddm-kcm
+    kdePackages.qtstyleplugin-kvantum
 
     # windows compatability - wine and proton stuff
-    wineWowPackages.stable
+    wineWowPackages.staging
     winetricks
     protontricks
 
@@ -296,6 +303,7 @@
     blender
 
     # programming
+    dotnet-sdk_10
     gcc
     rustc
     rustfmt
@@ -306,6 +314,7 @@
     (vscode-with-extensions.override {
       vscodeExtensions = with pkgs.nix-vscode-extensions.vscode-marketplace; [
         ms-vsliveshare.vsliveshare
+        ms-vscode.cpptools-extension-pack
         #ms-dotnettools.csharp
         njpwerner.autodocstring
         samuelcolvin.jinjahtml
@@ -348,10 +357,10 @@
     jetbrains.pycharm
     jetbrains.clion
     jetbrains.idea
-    #TODO uncomment when fixed https://github.com/NixOS/nixpkgs/issues/418451
     unityhub # installed 2022.3.6f1 using the uri: unityhub://2022.3.6f1/b9e6e7e9fa2d
 
     # other
+    kdePackages.kdenlive
     gimp3
     polychromatic
     ladybird
@@ -383,8 +392,9 @@
   programs = {
     gamescope = {
       enable = true;
-      capSysNice = true;
+      #capSysNice = true;
     };
+
     steam = {
       enable = true;
       extraCompatPackages = [
@@ -398,10 +408,10 @@
           (
             finalAttrs: _: {
               pname = "proton-ge-gdk-bin";
-              version = "GE-Proton10-25";
+              version = "GE-Proton10-32";
               src = fetchTarball {
-                url = "https://github.com/Weather-OS/GDK-Proton/releases/download/release/GE-Proton10-25.tar.gz";
-                sha256 = "sha256:08zfm1ipj957ln4i34dslg2dsmwnhw63pk3q08zdrlnz7ck6ja6r";
+                url = "https://github.com/Weather-OS/GDK-Proton/releases/download/release10-32/GDK-Proton10-32.tar.gz";
+                sha256 = "sha256:03b1f9y61j9a4mqav6g5wxgmncicv1a9cd76xdjigzir8a5fx8n7";
               };
             }
           )
@@ -417,6 +427,7 @@
     dconf.enable = true; # requires for home-manager gtk
     wireshark.enable = true;
     nix-ld.enable = true;
+    #joycond-cemuhook.enable = true;
 
     firefox = {
       enable = true;
@@ -440,7 +451,6 @@
         extraPkgs = pkgs: [
           pkgs.kdePackages.kirigami
           pkgs.kdePackages.kirigami-addons
-          pkgs.libsForQt5.kirigami2
           pkgs.vips # postybirb 4.x
 
         ];
@@ -473,6 +483,10 @@
   services = {
     fstrim.enable = true;
     desktopManager.plasma6.enable = true;
+    sunshine = {
+      enable = true;
+      capSysAdmin = true;
+    };
     openssh = {
       enable = true;
       settings.X11Forwarding = true;
@@ -498,6 +512,7 @@
       usershares.enable = true;
       openFirewall = true;
     };
+    #joycond.enable = true;
 
     # rule 1: 3d printer (?)
     # rule 2: Nintendo Switch (RCM)
@@ -618,9 +633,13 @@
   environment = {
     # force electron apps to run on wayland
     sessionVariables.NIXOS_OZONE_WL = "1";
-
+    sessionVariables.DOTNET_ROOT = "${pkgs.dotnet-sdk_10}/share/dotnet/";
+    shellAliases = {
+      "nixos-rebuild" = "nh os";
+    };
     interactiveShellInit = ''
       alias nano=micro
+      alias "nixos-rebuild"="nh os"
       unset SSH_AGENT_PID
       if [ "''${gnupg_SSH_AUTH_SOCK_by:-0}" -ne $$ ]; then
         export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
