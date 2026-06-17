@@ -64,95 +64,47 @@
       source = dotfiles/scdaemon.conf;
     };
 
-    xdg.desktopEntries =
-      let
-        monado = pkgs.monado.overrideAttrs (oldAttrs: {
-          pname = "monado-pimax"; # optional but helps distinguishing between packages
-          src = pkgs.fetchFromGitLab {
-            domain = "gitlab.freedesktop.org";
-            owner = "AnnoyingRain5";
-            repo = "monado";
-            rev = "5d638f53145bffe2ecf6b2187452490474927a7b";
-            hash = "sha256-G2Yy2C1BOGUVtUFVPe0nx53rNNEYFk1qBl77Gw0wDWo=";
-          };
-          nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
-          propagatedBuildInputs = (oldAttrs.propagatedBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
-          postFixup = ''
-            patchelf $out/bin/monado-service --add-rpath ${pkgs.libgbinder}/lib
-          '';
-          cmakeFlags = [
-            (lib.cmakeFeature "GIT_DESC" "Pimax-Fork")
-          ];
-          patches = (oldAttrs.patches or [ ]) ++ [
-            #patches/monado-waydroid.patch
-          ];
-        });
-      in
-      {
-        wlx-overlay-s = {
-          name = "wlx-overlay-s";
-          genericName = "VR Overlay";
-          exec = "LIBMONADO_PATH=${monado}/lib/libmonado.so wayvr --openxr";
-          terminal = true;
-          categories = [ "Application" ];
-          mimeType = [ ];
-        };
-        start-monado = {
-          name = "Start Monado";
-          genericName = "VR Compositor";
-          exec = "systemctl --user start monado";
-          terminal = false;
-          categories = [ "Application" ];
-          mimeType = [ ];
-        };
-        stop-monado = {
-          name = "Stop Monado";
-          genericName = "VR Compositor";
-          exec = "systemctl --user stop monado";
-          terminal = false;
-          categories = [ "Application" ];
-          mimeType = [ ];
-        };
+    xdg.desktopEntries = {
+      wlx-overlay-s = {
+        name = "wlx-overlay-s";
+        genericName = "VR Overlay";
+        exec = "LIBMONADO_PATH=${inputs.rainspkgs.packages.x86_64-linux.monado-pimax}/lib/libmonado.so wayvr --openxr";
+        terminal = true;
+        categories = [ "Application" ];
+        mimeType = [ ];
       };
+      start-monado = {
+        name = "Start Monado";
+        genericName = "VR Compositor";
+        exec = "systemctl --user start monado";
+        terminal = false;
+        categories = [ "Application" ];
+        mimeType = [ ];
+      };
+      stop-monado = {
+        name = "Stop Monado";
+        genericName = "VR Compositor";
+        exec = "systemctl --user stop monado";
+        terminal = false;
+        categories = [ "Application" ];
+        mimeType = [ ];
+      };
+    };
 
-    xdg.configFile."openxr/1/active_runtime.json".text =
-      let
-        monado = pkgs.monado.overrideAttrs (oldAttrs: {
-          pname = "monado-pimax"; # optional but helps distinguishing between packages
-          src = pkgs.fetchFromGitLab {
-            domain = "gitlab.freedesktop.org";
-            owner = "AnnoyingRain5";
-            repo = "monado";
-            rev = "5d638f53145bffe2ecf6b2187452490474927a7b";
-            hash = "sha256-G2Yy2C1BOGUVtUFVPe0nx53rNNEYFk1qBl77Gw0wDWo=";
-          };
-          nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
-          propagatedBuildInputs = (oldAttrs.propagatedBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
-          postFixup = ''
-            patchelf $out/bin/monado-service --add-rpath ${pkgs.libgbinder}/lib
-          '';
-          cmakeFlags = [
-            (lib.cmakeFeature "GIT_DESC" "Pimax-Fork")
-          ];
-          patches = (oldAttrs.patches or [ ]) ++ [
-            #patches/monado-waydroid.patch
-          ];
-        });
-      in
-      ''
-        {
-          "file_format_version": "1.0.0",
-          "runtime": {
-              "name": "Monado",
-              "library_path": "${monado}/lib/libopenxr_monado.so",
-              "MND_libmonado_path": "${monado}/lib/libmonado.so"
-          }
+    xdg.configFile."openxr/1/active_runtime.json".text = ''
+      {
+        "file_format_version": "1.0.0",
+        "runtime": {
+            "name": "Monado",
+            "library_path": "${inputs.rainspkgs.packages.x86_64-linux.monado-pimax}/lib/libopenxr_monado.so",
+            "MND_libmonado_path": "${inputs.rainspkgs.packages.x86_64-linux.monado-pimax}/lib/libmonado.so"
         }
-      '';
+      }
+    '';
     xdg.configFile."openxr/1/active_runtime.i686.json".source =
       let
         p = pkgs.pkgsi686Linux;
-        pkg = pkgs.pkgsi686Linux.monado.overrideAttrs (prev: {
+        pkg = inputs.rainspkgs.packages.i686-linux.monado-pimax.overrideAttrs (prev: {
           pname = "monado-server-lib";
           nativeBuildInputs = with p; [
             cmake

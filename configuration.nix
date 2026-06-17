@@ -28,8 +28,14 @@
   ];
 
   nix.settings = {
-    substituters = [ "https://nix-community.cachix.org" ];
-    trusted-public-keys = [ "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=" ];
+    substituters = [
+      "https://nix-community.cachix.org"
+      "https://rainspkgs.cachix.org"
+    ];
+    trusted-public-keys = [
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "rainspkgs.cachix.org-1:/ZuO+wZMALJenjgas0vZ8+eZZjHZlIzdqAPZmoOAcaY="
+    ];
   };
 
   services.postgresql.enable = true;
@@ -251,30 +257,6 @@
 
     # emulators
     dolphin-emu
-    #(dolphin-emu.overrideAttrs (oldattrs: {
-    #  pname = "dolphin-xr";
-    #  buildInputs = (oldattrs.buildInputs or [ ]) ++ [ openxr-loader ];
-    #  src = pkgs.fetchFromGitHub {
-    #    owner = "AnnoyingRain5";
-    #    repo = "dolphinXR";
-    #    rev = "7486f8ec05621f658eb6422c0e42ece96d303491";
-    #    hash = "sha256-2Zyw8kj0Zc2YrmZbqW2Ai3YQdUGOJR01beH13LkJBCc=";
-    #    fetchSubmodules = true;
-    #    deepClone = false;
-    #    leaveDotGit = true;
-    #    postFetch = ''
-    #      pushd $out
-    #      git rev-parse HEAD 2>/dev/null >$out/COMMIT
-    #      find $out -name .git -print0 | xargs -0 rm -rf
-    #      popd
-    #    '';
-    #  };
-    #  postPatch = ''
-    #    # Remove the OpenXR submodule directory so it uses system package instead
-    #    rm -rf Externals/OpenXR
-    #  '';
-    #
-    #}))
     # here lies citra and yuzu...
     ryubing
     xemu
@@ -360,6 +342,7 @@
     unityhub # installed 2022.3.6f1 using the uri: unityhub://2022.3.6f1/b9e6e7e9fa2d
 
     # other
+    krita
     kdePackages.kdenlive
     gimp3
     polychromatic
@@ -378,10 +361,7 @@
     wireshark
     nextcloud-client
     yubioath-flutter
-    (import (fetchTarball {
-      url = "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v2.tar.gz";
-      sha256 = "sha256:0g08rc92q9n5vvnr2w51alr1z38nf12c23frzjag25xf3g4qw6p4";
-    }) { inherit pkgs; }).discord-krisp-patcher
+    inputs.rainspkgs.packages.x86_64-linux.discord-krisp-patcher
   ];
 
   # does this even do anything on plasma?
@@ -400,22 +380,7 @@
       extraCompatPackages = [
         pkgs.proton-ge-bin
         pkgs.steam-play-none
-
-        (
-          (pkgs.proton-ge-bin.override {
-            steamDisplayName = "GE-Proton-GDK";
-          }).overrideAttrs
-          (
-            finalAttrs: _: {
-              pname = "proton-ge-gdk-bin";
-              version = "GE-Proton10-32";
-              src = fetchTarball {
-                url = "https://github.com/Weather-OS/GDK-Proton/releases/download/release10-32/GDK-Proton10-32.tar.gz";
-                sha256 = "sha256:03b1f9y61j9a4mqav6g5wxgmncicv1a9cd76xdjigzir8a5fx8n7";
-              };
-            }
-          )
-        )
+        inputs.rainspkgs.packages.x86_64-linux.proton-ge-gdk
       ];
       gamescopeSession = {
         enable = true;
@@ -608,10 +573,7 @@
       corefonts
       vista-fonts
       unifont
-      (import (fetchTarball {
-        url = "https://github.com/AnnoyingRain5/Rains-NUR/archive/refs/tags/v2.tar.gz";
-        sha256 = "sha256:0g08rc92q9n5vvnr2w51alr1z38nf12c23frzjag25xf3g4qw6p4";
-      }) { inherit pkgs; }).avali-scratch
+      inputs.rainspkgs.packages.x86_64-linux.avali-scratch
     ];
   };
 

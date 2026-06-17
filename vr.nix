@@ -1,6 +1,6 @@
 {
   pkgs,
-  lib,
+  inputs,
   ...
 }:
 
@@ -12,30 +12,7 @@
     enable = true;
     defaultRuntime = true;
     highPriority = true;
-
-    package = (
-      pkgs.monado.overrideAttrs (oldAttrs: {
-        pname = "monado-pimax"; # optional but helps distinguishing between packages
-        src = pkgs.fetchFromGitLab {
-          domain = "gitlab.freedesktop.org";
-          owner = "AnnoyingRain5";
-          repo = "monado";
-          rev = "5d638f53145bffe2ecf6b2187452490474927a7b";
-          hash = "sha256-G2Yy2C1BOGUVtUFVPe0nx53rNNEYFk1qBl77Gw0wDWo=";
-        };
-        nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
-        propagatedBuildInputs = (oldAttrs.propagatedBuildInputs or [ ]) ++ [ pkgs.libgbinder ];
-        cmakeFlags = [
-          (lib.cmakeFeature "GIT_DESC" "Pimax-Fork")
-        ];
-        postFixup = ''
-          patchelf $out/bin/monado-service --add-rpath ${pkgs.libgbinder}/lib
-        '';
-        patches = (oldAttrs.patches or [ ]) ++ [
-          #patches/monado-waydroid.patch
-        ];
-      })
-    );
+    package = inputs.rainspkgs.packages.x86_64-linux.monado-pimax;
   };
 
   environment.systemPackages = with pkgs; [
