@@ -188,7 +188,7 @@
     ## command line utilities ##
     wget
     file
-    nixfmt-rfc-style
+    nixfmt
     sshfs
     killall
     unzip
@@ -272,7 +272,7 @@
     kdePackages.qtstyleplugin-kvantum
 
     # windows compatability - wine and proton stuff
-    wineWowPackages.staging
+    wineWow64Packages.staging
     winetricks
     protontricks
 

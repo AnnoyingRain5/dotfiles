@@ -9,7 +9,7 @@
     nur.inputs.nixpkgs.follows = "nixpkgs";
 
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel";
-    nix-cachyos-kernel.inputs.nixpkgs.follows = "nixpkgs";
+    #nix-cachyos-kernel.inputs.nixpkgs.follows = "nixpkgs";
 
     home-manager.url = "github:nix-community/home-manager/master";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -21,10 +21,8 @@
     flake-firefox-nightly.inputs.nixpkgs.follows = "nixpkgs";
 
     flatpaks.url = "github:GermanBread/declarative-flatpak/latest";
-    flatpaks.inputs.nixpkgs.follows = "nixpkgs";
 
     qemu-applesilicon.url = "github:onny/nixpkgs/qemu-applesilicon";
-    qemu-applesilicon.inputs.nixpkgs.follows = "nixpkgs";
 
     minegrub-theme.url = "github:Lxtharia/minegrub-theme";
     minegrub-theme.inputs.nixpkgs.follows = "nixpkgs";
