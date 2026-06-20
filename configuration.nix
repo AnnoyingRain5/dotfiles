@@ -595,6 +595,7 @@
   environment = {
     # force electron apps to run on wayland
     sessionVariables.NIXOS_OZONE_WL = "1";
+    TZ = "Australia/Sydney"; # required for postybirb for some reason
     sessionVariables.DOTNET_ROOT = "${pkgs.dotnet-sdk_10}/share/dotnet/";
     shellAliases = {
       "nixos-rebuild" = "nh os";
